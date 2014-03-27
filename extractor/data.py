@@ -19,11 +19,14 @@
 # permissions and limitations under the Licence.
 
 import re
+import logging
 
 from . import dataset
 from . import utils
 
 ###############################################################################
+
+logging.debug("Loading census.csv")
 
 COLUMNS_CENSUS = {"Αναγνωριστικό": 'pk',
                   "FORGANIKOSFOREAS": 'cid',
@@ -57,6 +60,8 @@ census.cid_by_norm = {utils.namenorm(name):cid
 assert len(census.cid_by_norm) == len(census.name), "Normalized name clash"
 
 ###############################################################################
+
+logging.debug("Loading transparency.csv")
 
 COLUMNS_TRANSPARENCY = {"Αναγνωριστικό": 'pk',
                         "ΑΦΜ": 'vat',
@@ -112,6 +117,8 @@ del entries, vat, vats
 
 ###############################################################################
 
+logging.debug("Loading syzefxis.csv")
+
 COLUMNS_SYZEFXIS = {"Αναγνωριστικό": 'pk',
                     "AFM": 'vat',
                     "CUSTOMER_NAME": 'name',
@@ -134,6 +141,8 @@ syzefxis = dataset.Dataset("syzefxis.csv", COLUMNS_SYZEFXIS,
 syzefxis.by_vat = syzefxis.create_index('vat')
 
 ###############################################################################
+
+logging.debug("Loading hierarchy.csv")
 
 COLUMNS_HIERARCHY = {"Αναγνωριστικό": 'pk',
                      "ID": 'cid',
@@ -164,6 +173,8 @@ hierarchy.by_norm = hierarchy.create_index('norm')
 
 ###############################################################################
 
+logging.debug("Loading hierarchy_types.csv")
+
 COLUMNS_HIERARCHY_TYPES = {"Αναγνωριστικό": 'pk',
                            "ID": 'id',
                            "TYPOSNAME": 'name'}
@@ -173,6 +184,8 @@ type_name = {e.id:e.name
                                       COLUMNS_HIERARCHY_TYPES, 'id')}
 
 ###############################################################################
+
+logging.debug("Loading kep.csv")
 
 COLUMNS_KEP = {"kepCode": 'code',
                "name": 'name',
