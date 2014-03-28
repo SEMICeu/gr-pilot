@@ -156,7 +156,7 @@ def cleanup_hierarchy(e):
         e.parent_id = e.type_id
         e.type_id = e.invisible
     # Discard some types
-    return e.type_id not in {'8', '9', '10'}
+    return e.type_id not in {'4', '8', '9', '10', '20'}
 
 hierarchy = dataset.Dataset("hierarchy.csv", COLUMNS_HIERARCHY,
                             'cid', cleanup_hierarchy)
