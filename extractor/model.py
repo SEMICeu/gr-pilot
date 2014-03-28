@@ -21,13 +21,29 @@
 from .rdf import *
 
 
-@resource(YDMED.OrganizationType, "type")
-class OrganizationType(Resource):
+@resource(SKOS.ConceptScheme)
+class ConceptScheme(Resource):
 
-    name                = Property(RDFS.label, rng=Property.UNIQUETEXT, min=1, max=1)
+    name                = Property(RDFS.label, rng=Property.UNIQUETEXT, min=1)
+    topConcept          = Property(SKOS.hasTopConcept, rng=URIRef)
 
     def __init__(self, uri):
         Resource.__init__(self, uri)
+
+
+ORGANIZATION_TYPES = ConceptScheme(URIRef(BASE_URI + "type"))
+ORGANIZATION_TYPES.name = Literal("Organization types", lang="en")
+
+
+@resource(SKOS.Concept, "type")
+class OrganizationType(Resource):
+
+    name                = Property(RDFS.label, rng=Property.UNIQUETEXT, min=1, max=1)
+    scheme              = Property(SKOS.topConceptOf, rng=ConceptScheme, min=1, max=1)
+
+    def __init__(self, uri):
+        Resource.__init__(self, uri)
+        self.scheme = ORGANIZATION_TYPES
 
 
 @resource(LOCN.Address, "address")

@@ -93,6 +93,7 @@ model.validate(orgtypes.values(),
 
 logging.info("Constructing RDF graph")
 g = rdf.Graph()
+g.add(model.ORGANIZATION_TYPES)
 g.add(orgtypes.values())
 g.add(addresses.values())
 g.add(organizations.values())

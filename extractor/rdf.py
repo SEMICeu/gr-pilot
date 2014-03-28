@@ -27,7 +27,6 @@ from rdflib.namespace import RDF, RDFS, XSD, OWL, SKOS, DCTERMS, FOAF
 ORG = rdflib.Namespace("http://www.w3.org/ns/org#")
 ROV = rdflib.Namespace("http://www.w3.org/ns/regorg#")
 LOCN = rdflib.Namespace("http://www.w3.org/ns/locn#")
-YDMED = rdflib.Namespace("http://data.ydmed.gov.gr/def#")
 
 BASE_URI = "http://data.ydmed.gov.gr/id/"
 
@@ -48,7 +47,6 @@ class Graph(rdflib.Graph):
         self.bind('org', str(ORG))
         self.bind('rov', str(ROV))
         self.bind('locn', str(LOCN))
-        self.bind('ydmed', str(YDMED))
         if data is not None:
             self.add(data)
 
@@ -206,8 +204,9 @@ class Resource:
     '''
 
     def __init__(self, uri):
-        if not isinstance(uri, URIRef):
+        if self.CONCEPT_NAME and not isinstance(uri, URIRef):
             uri = URIRef(BASE_URI + self.CONCEPT_NAME + "/" + uri)
+        assert isinstance(uri, URIRef)
         self.uri = uri
         for name, prop in self.properties():
             setattr(self, name, set())
@@ -272,7 +271,7 @@ class Resource:
             prop._add_to_graph(self, g, memo)
 
 
-def resource(uri, concept):
+def resource(uri, concept=None):
     '''Decorator for Resource.
 
     Arguments:
