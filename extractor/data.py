@@ -72,10 +72,6 @@ COLUMNS_TRANSPARENCY = {"Αναγνωριστικό": 'pk',
                         "ID ΦΟΡΕΑ ΔΙΑΥΓΕΙΑ": 'tid',
                         "ID ΦΟΡΕΑ ΑΠΟΓΡΑΦΗ": 'cid'}
 
-TRANSPARENCY_CIDFIX = {'2565': '7412',  # ΑΝΤΙΚΑΡΚΙΝΙΚΟ ΝΟΣΟΚΟΜΕΙΟ ΘΕΣΣΑΛΟΝΙΚΗΣ "ΘΕΑΓΕΝΕΙΟ"
-                       '2567': '7862',  # ΓΕΝΙΚΟ ΑΝΤΙΚΑΡΚΙΝΙΚΟ  ΝΟΣΟΚΟΜΕΙΟ ΑΘΗΝΩΝ " ΑΓΙΟΣ ΣΑΒΒΑΣ"
-                       '3115': '7891'}  # ΤΑΜΕΙΟ ΕΘΝΙΚΗΣ ΑΜΥΝΑΣ
-
 def cleanup_transparency(e):
     # Discard rows with empty names
     if not e.name:
@@ -85,12 +81,9 @@ def cleanup_transparency(e):
     # Normalize empty VATs
     if e.vat == '-' or re.match(r"^x+$", e.vat):
         e.vat = ''
-    # Fix/find cid based on name mapping
-    if e.norm in census.cid_by_norm:
+    # Find additional cid based on name mapping
+    if not e.cid and e.norm in census.cid_by_norm:
         e.cid = census.cid_by_norm[e.norm]
-    # Fix some cid
-    if e.pk in TRANSPARENCY_CIDFIX:
-        e.cid = TRANSPARENCY_CIDFIX[e.pk]
     return True
 
 transparency = dataset.Dataset("transparency.csv", COLUMNS_TRANSPARENCY,
