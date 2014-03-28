@@ -1,0 +1,208 @@
+* {
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  font-family: 'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  color: #333;
+  background: #eeeeec;
+  box-shadow: inset 0 3px 100px rgba(0,0,0,.3);
+  min-height: 100%;
+}
+
+body > header,
+body > section,
+body > footer {
+  max-width: 978px;
+  margin: 30px auto;
+  display: block;
+  clear: both;
+  padding: 30px 40px;
+}
+
+body > header,
+body > section {
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.1);
+}
+
+/* Header */
+
+body > header {
+  background: #0f5494;
+  color: white;
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  padding-top: 10px;
+  padding-bottom: 20px;
+}
+
+body > header .logo {
+  float: left;
+  margin-right: 20px;
+}
+
+body > header h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 600;
+}
+
+body > header .subtitle {
+  color: white;
+  font-size: 28px;
+  margin: 0;
+  margin-top: 5px;
+}
+
+/* Sections */
+
+body > section {
+  background: white;
+}
+
+h2 {
+  font-size: 28px;
+  font-weight: 300;
+  color: #0f5494;
+}
+
+body > section > h2:first-child {
+  margin-top: 0;
+}
+
+h3 {
+  font-size: 20px;
+  font-weight: normal;
+  color: #0f9492;
+}
+
+/* Footer */
+
+body > footer {
+  margin-bottom: 0;
+  text-align: center;
+  font-size: 80%;
+  padding-top: 5px;
+  padding-bottom: 10px;
+}
+
+/* Inline elements */
+
+a {
+  text-decoration: none;
+  color: #0f5494;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+strong {
+  font-weight: 600;
+  color: black;
+}
+
+figure {
+  text-align: center;
+}
+
+/* Tables */
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: .5em 0;
+  border: 1px solid #0F5494;
+}
+
+tr {
+  vertical-align: top;
+}
+tr:nth-child(even) {
+  background-color: #eeeeec;
+}
+
+th, td {
+  padding: 2px 1em;
+}
+
+th {
+  text-align: left;
+  white-space: nowrap;
+  font-weight: 600;
+  background-color: #0F5494;
+  color: white;
+}
+
+table ol,
+table ul {
+  margin: 0;
+  padding-left: 1em;
+}
+
+/* Properties lists */
+
+dl.properties dt {
+  float: left;
+  clear: left;
+  width: 100px;
+  text-align: right;
+  font-weight: 300;
+}
+dl.properties dt:after {
+  content: ":";
+}
+dl.properties dd {
+  margin: 0 0 0 110px;
+  padding: 0 0 0.5em 0;
+}
+
+/* Links list */
+
+dl.links dt {
+  clear: left;
+  margin-left: 30px;
+  margin-top: 1em;
+}
+dl.links dt.join {
+  margin-top: .5em;
+}
+dl.links dt > img:first-child {
+  float: left;
+  margin-top: 5px;
+  margin-left: -30px;
+}
+dl.links dd {
+  margin-left: 30px;
+  font-size: small;
+}
+
+/* Miscelaneous elements */
+
+#query {
+  width: 80%;
+}
+
+.error {
+  color: #a40000;
+  font-weight: 600;
+}
+
+.description {
+  font-size: small;
+}
+
+.more {
+  text-align: right;
+  margin-top: 0;
+}
+
+/* vim:set ts=2 sw=2 et: */

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Known namespaces for use by about.xsl
+-->
+<namespaces xmlns="http://semic.eu/namespaces">
+  <namespace>
+    <prefix>rdf</prefix>
+    <uri>http://www.w3.org/1999/02/22-rdf-syntax-ns#</uri>
+  </namespace>
+  <namespace>
+    <prefix>rdfs</prefix>
+    <uri>http://www.w3.org/2000/01/rdf-schema#</uri>
+  </namespace>
+  <namespace>
+    <prefix>xsd</prefix>
+    <uri>http://www.w3.org/2001/XMLSchema#</uri>
+  </namespace>
+  <namespace>
+    <prefix>owl</prefix>
+    <uri>http://www.w3.org/2002/07/owl#</uri>
+  </namespace>
+  <namespace>
+    <prefix>dc</prefix>
+    <uri>http://purl.org/dc/elements/1.1/</uri>
+  </namespace>
+  <namespace>
+    <prefix>dcterms</prefix>
+    <uri>http://purl.org/dc/terms/</uri>
+  </namespace>
+  <namespace>
+    <prefix>foaf</prefix>
+    <uri>http://xmlns.com/foaf/0.1/</uri>
+  </namespace>
+  <namespace>
+    <prefix>skos</prefix>
+    <uri>http://www.w3.org/2004/02/skos/core#</uri>
+  </namespace>
+  <namespace>
+    <prefix>geo</prefix>
+    <uri>http://www.w3.org/2003/01/geo/wgs84_pos#</uri>
+  </namespace>
+  <namespace>
+    <prefix>org</prefix>
+    <uri>http://www.w3.org/ns/org#</uri>
+  </namespace>
+  <namespace>
+    <prefix>rov</prefix>
+    <uri>http://www.w3.org/ns/regorg#</uri>
+  </namespace>
+  <namespace>
+    <prefix>locn</prefix>
+    <uri>http://www.w3.org/ns/locn#</uri>
+  </namespace>
+</namespaces>
