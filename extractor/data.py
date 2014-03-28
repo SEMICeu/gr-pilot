@@ -153,8 +153,11 @@ def cleanup_hierarchy(e):
     e.norm = utils.namenorm(e.name)
     # Fix column shift in some rows
     if e.invisible not in {'', '0', '1'}:
-        e.parent_id = e.type_id
+        e.parent_cid = e.type_id
         e.type_id = e.invisible
+    # Normalize empty parent
+    if e.parent_cid == '0':
+        e.parent_cid = ''
     # Discard some types
     return e.type_id not in {'4', '8', '9', '10', '20'}
 

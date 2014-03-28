@@ -51,3 +51,19 @@ def isincluded(s1, s2):
         if c == s1[i]:
             i += 1
     return i == len(s1)
+
+
+class AutoDict(dict):
+
+    '''A dictionary that automatically creates new entries when requesting an
+    unknown key.'''
+
+    def __init__(self, cls):
+        '''Automatically create keys of type cls. The constructor of cls shall
+        take one argument: the key.'''
+        self._newcls = cls
+
+    def __getitem__(self, key):
+        if key not in self:
+            self[key] = self._newcls(key)
+        return super().__getitem__(key)

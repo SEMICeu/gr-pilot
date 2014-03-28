@@ -21,6 +21,8 @@
 import logging
 import argparse
 
+from . import utils
+
 ## CLI
 
 parser = argparse.ArgumentParser(prog="extractor")
@@ -40,60 +42,59 @@ logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
 logging.info("Loading data")
 from . import data
 
-from .model import *
+from . import model
+from . import rdf
+from .rdf import URIRef, Literal
+
+orgtypes = utils.AutoDict(model.OrganizationType)
+addresses = utils.AutoDict(model.Address)
+organizations = utils.AutoDict(model.Organization)
 
 ## Extract organization types
+
 logging.info("Processing hierarchy_types")
-
-orgtypes = {}
-
 for id, name in data.type_name.items():
-    ot = OrganizationType(id)
+    ot = orgtypes[id]
     ot.name = Literal(name, lang="el")
 
 
 ## Extract organizations
 
-logging.info("Processing hierarchy")
-organizations = {e.cid:Organization(e.cid) for e in data.hierarchy}
-
-for e in data.hierarchy:
-    org = organizations[e.cid]
-    org.name = {Literal(e.name, lang="el")}
-    if e.type_id in orgtypes:
-        org.type = orgtypes[e.type_id]
-    org.parent = set()
-    if e.parent_cid in organizations:
-        org.parent.add(organizations[e.parent_cid])
-
 logging.info("Processing census")
 for e in data.census:
-    if e.cid not in organizations:
-        org = Organization(e.cid)
-        org.name = set()
-        org.parent = set()
-        organizations[e.cid] = org
     org = organizations[e.cid]
     org.name.add(Literal(e.name, lang="el"))
+
+logging.info("Processing hierarchy")
+stack = list(organizations.keys())
+while stack:
+    cid = stack.pop()
+    if cid in data.hierarchy:
+        org = organizations[cid]
+        e = data.hierarchy[cid]
+        org.name.add(Literal(e.name, lang="el"))
+        if e.type_id:
+            org.type = orgtypes[e.type_id]
+        if e.parent_cid:
+            if e.parent_cid not in organizations:
+                stack.append(e.parent_cid)
+            org.parent.add(organizations[e.parent_cid])
 
 
 ## Validate model
 
 logging.info("Validating")
-
-result = ValidationResult()
-for t in orgtypes.values():
-    t.validate(result=result)
-for o in organizations.values():
-    o.validate(result=result)
-result.log()
+model.validate(orgtypes.values(),
+               addresses.values(),
+               organizations.values()).log()
 
 
 ## Produce RDF
 
 logging.info("Constructing RDF graph")
-g = Graph()
+g = rdf.Graph()
 g.add(orgtypes.values())
+g.add(addresses.values())
 g.add(organizations.values())
 logging.info("Serializing RDF graph")
 with open(args.output, 'wb') as f:

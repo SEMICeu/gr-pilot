@@ -210,7 +210,7 @@ class Resource:
             uri = URIRef(BASE_URI + self.CONCEPT_NAME + "/" + uri)
         self.uri = uri
         for name, prop in self.properties():
-            setattr(self, name, None)
+            setattr(self, name, set())
 
     def __repr__(self):
         return '<' + self.__class__.__name__ + ' ' + str(self.uri) + '>'
@@ -323,12 +323,13 @@ class ValidationResult:
             logging.debug("All errors: " + ", ".join(instances))
 
 
-def validate(resources):
-    '''Validate a list, tuple or set of resources.'''
-    if isinstance(resources, Resource):
-        return resources.validate()
-    else:
-        result = ValidationResult()
-        for resource in resources:
-            resource.validate(result=result)
-        return result
+def validate(*resourceslist):
+    '''Validate collections of resources.'''
+    result = ValidationResult()
+    for resources in resourceslist:
+        if isinstance(resources, Resource):
+            resources.validate(result=result)
+        else:
+            for resource in resources:
+                resource.validate(result=result)
+    return result
