@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  XSLT script to format the list of organization types.
+  XSLT script to format the list of URIs.
 
   Copyright 2014 European Union
 
@@ -21,14 +21,9 @@
   permissions and limitations under the Licence.
 
 
-  This script is meant to be applied to the results of the following
-  SPARQL queries (in application/sparql-results+xml format).
-
-  SELECT DISTINCT * WHERE {
-    ?type a skos:Concept ;
-          skos:topConceptOf <http://data.ydmed.gov.gr/id/type> ;
-          rdfs:label ?label .
-  } ORDER BY ?label
+  This script is meant to be applied to the results of a SPARQL query
+  (in application/sparql-results+xml format) containing the variables ?uri
+  and ?label.
 
 -->
 <xsl:stylesheet version="1.0"
@@ -42,7 +37,7 @@
     <ul>
       <xsl:for-each select="//res:result">
         <li>
-          <a href="{res:binding[@name='type']}">
+          <a href="{res:binding[@name='uri']}">
             <xsl:value-of select="res:binding[@name='label']" />
           </a>
         </li>

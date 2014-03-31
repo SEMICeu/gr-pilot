@@ -58,18 +58,18 @@ function doSearch() {
   });
 }
 
-function fillTypes() {
-  var sparql = 'SELECT DISTINCT * WHERE { ?type a skos:Concept ; ' +
-               'skos:topConceptOf <http://data.ydmed.gov.gr/id/type> ; ' +
+function initCategories() {
+  var sparql = 'SELECT DISTINCT * WHERE { ?uri a skos:Concept ; ' +
+               'skos:topConceptOf <http://data.ydmed.gov.gr/id/category> ; ' +
                'rdfs:label ?label . ' +
                '} ORDER BY ?label';
   console.log("Executing query: " + sparql);
   $.get("/sparql", {
     'query': sparql,
     'format': "application/sparql-results+xml",
-    'xslt-uri': "http://data.ydmed.gov.gr/types.xsl"
+    'xslt-uri': "http://data.ydmed.gov.gr/uri-list.xsl"
   }, function(data) {
-    $("#types").prepend(data);
+    $("#categories").prepend(data);
   });
 }
 
@@ -78,7 +78,7 @@ $(function() {
     doSearch();
     event.preventDefault();
   });
-  fillTypes();
+  initCategories();
 });
 
 /* vim:set ts=2 sw=2 et: */
