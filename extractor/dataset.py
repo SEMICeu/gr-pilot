@@ -63,7 +63,7 @@ class Dataset:
 
     '''The Dataset class represents an input dataset.'''
 
-    def __init__(self, filename, headermap, pkname, cleanup=None):
+    def __init__(self, filename, headermap, pkname='rownum', cleanup=None):
         '''Load a dataset from a CSV file.
 
         Arguments:
@@ -78,9 +78,11 @@ class Dataset:
             reader = csv.reader(f)
             header = next(reader)
             propnames = [headermap[name] for name in header]
+            assert "rownum" not in propnames
             self.entries = []
-            for row in reader:
+            for i, row in enumerate(reader):
                 entry = Entry(row, propnames)
+                entry.rownum = i
                 if cleanup is None or cleanup(entry):
                     self.entries.append(entry)
         self._pk_index = self.create_index(pkname, unique=True)
@@ -102,7 +104,7 @@ class Dataset:
             else:
                 if key not in result:
                     result[key] = set()
-                result[key].add(e)
+                result[key].add(value)
         return result
 
     def __getitem__(self, key):
