@@ -31,14 +31,17 @@ class ConceptScheme(Resource):
         Resource.__init__(self, uri)
 
 
-ORGANIZATION_TYPES = ConceptScheme(URIRef(BASE_URI + "type"))
+ORGANIZATION_TYPES = ConceptScheme("type")
 ORGANIZATION_TYPES.name = Literal("Organization types", lang="en")
+
+ORGANIZATION_CATEGORIES = ConceptScheme("category")
+ORGANIZATION_CATEGORIES.name = Literal("Organization categories", lang="en")
 
 
 @resource(SKOS.Concept, "type")
 class OrganizationType(Resource):
 
-    name                = Property(RDFS.label, rng=Property.UNIQUETEXT, min=1, max=1)
+    label               = Property(RDFS.label, rng=Property.UNIQUETEXT, min=1, max=1)
     scheme              = Property(SKOS.topConceptOf, rng=ConceptScheme, min=1, max=1)
 
     def __init__(self, uri):
@@ -46,9 +49,21 @@ class OrganizationType(Resource):
         self.scheme = ORGANIZATION_TYPES
 
 
+@resource(SKOS.Concept, "category")
+class OrganizationCategory(Resource):
+
+    label               = Property(RDFS.label, rng=Property.UNIQUETEXT, min=1, max=1)
+    scheme              = Property(SKOS.topConceptOf, rng=ConceptScheme, min=1, max=1)
+
+    def __init__(self, uri):
+        Resource.__init__(self, uri)
+        self.scheme = ORGANIZATION_CATEGORIES
+
+
 @resource(LOCN.Address, "address")
 class Address(Resource):
 
+    label               = Property(RDFS.label, rng=Property.TEXT)
     fullAddress         = Property(LOCN.fullAddress, rng=Literal)
     poBox               = Property(LOCN.poBox, rng=Literal)
     thoroughfare        = Property(LOCN.thoroughfare, rng=Literal)
@@ -65,13 +80,16 @@ class Address(Resource):
         Resource.__init__(self, uri)
 
 
-@resource(ROV.RegisteredOrganization, "org")
+@resource(ROV.RegisteredOrganization, "organization")
 class Organization(Resource):
 
     name                = Property(RDFS.label, rng=Property.TEXT, min=1)
-    type                = Property(ROV.orgType, rng=OrganizationType, min=1, max=1)
+    identifier          = Property(ORG.identifier, rng=Literal, min=1)
+    type                = Property(ROV.orgType, rng=OrganizationType)
+    category            = Property(ORG.classification, rng=OrganizationCategory)
     parent              = Property(ORG.subOrganizationOf)
     address             = Property(LOCN.address, rng=Address)
+    phone               = Property(FOAF.phone, rng=URIRef)
 
     def __init__(self, uri):
         Resource.__init__(self, uri)

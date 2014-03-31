@@ -23,6 +23,7 @@ import argparse
 
 from . import utils
 
+
 ## CLI
 
 parser = argparse.ArgumentParser(prog="extractor")
@@ -37,6 +38,7 @@ args = parser.parse_args()
 logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                     format="[%(asctime)s] %(levelname)s %(message)s")
 
+
 ## Initialize data
 
 logging.info("Loading data")
@@ -47,38 +49,67 @@ from . import rdf
 from .rdf import URIRef, Literal
 
 orgtypes = utils.AutoDict(model.OrganizationType)
+categories = utils.AutoDict(model.OrganizationCategory)
 addresses = utils.AutoDict(model.Address)
 organizations = utils.AutoDict(model.Organization)
 
-## Extract organization types
 
-logging.info("Processing hierarchy_types")
-for id, name in data.type_name.items():
-    ot = orgtypes[id]
-    ot.name = Literal(name, lang="el")
+## Extract data
 
+logging.info("Processing  organization types")
+for i, (norm, labels) in enumerate(sorted(data.transparency.type_by_typenorm.items())):
+    # TODO: Have a better identifier for the URI
+    orgtypes[norm] = model.OrganizationType(i)
+    orgtypes[norm].label = Literal(next(iter(labels)), lang="el")
 
-## Extract organizations
-
-logging.info("Processing census")
-for e in data.census:
-    org = organizations[e.cid]
-    org.name.add(Literal(e.name, lang="el"))
-
-logging.info("Processing hierarchy")
-stack = list(organizations.keys())
-while stack:
-    cid = stack.pop()
-    if cid in data.hierarchy:
-        org = organizations[cid]
-        e = data.hierarchy[cid]
+logging.info("Processing organizations")
+for vat, entries in data.transparency.by_vat.items():
+    org = organizations[vat]
+    org.identifier = vat
+    for e in entries:
         org.name.add(Literal(e.name, lang="el"))
-        if e.type_id:
-            org.type = orgtypes[e.type_id]
-        if e.parent_cid:
-            if e.parent_cid not in organizations:
-                stack.append(e.parent_cid)
-            org.parent.add(organizations[e.parent_cid])
+        if e.type:
+            org.type.add(orgtypes[utils.namenorm(e.type)])
+        if e.parent_vat and e.parent_vat != vat:
+            org.parent.add(organizations[e.parent_vat])
+        if e.cid in data.census.by_cid:
+            for ce in data.census.by_cid[e.cid]:
+                org.name.add(Literal(ce.name, lang="el"))
+                addr = addresses[ce.address_id]
+                org.address.add(addr)
+                full = ""
+                if ce.street1:
+                    addr.thoroughfare.add(ce.street1)
+                    full = ce.street1
+                    if ce.number1:
+                        addr.locatorDesignator.add(ce.number1)
+                        full += " " + ce.number1
+                    full += ", "
+                addr.adminUnitL2.add(ce.municipality)
+                full += ce.municipality
+                if ce.postcode:
+                    addr.postCode.add(ce.postcode)
+                    full += " " + ce.postcode
+                addr.adminUnitL1.add(ce.country)
+                full += ", " + ce.country
+                addr.fullAddress.add(full)
+                addr.label.add(Literal(full, lang="el"))
+        if e.cid in data.hierarchy:
+            he = data.hierarchy[e.cid]
+            org.name.add(Literal(he.name, lang="el"))
+            if he.type_id:
+                org.category.add(categories[he.type_id])
+            if he.parent_cid != he.cid and he.parent_cid in data.transparency.by_cid:
+                for p in data.transparency.by_cid[he.parent_cid]:
+                    org.parent.add(organizations[p.vat])
+    if vat in data.syzefxis.by_vat:
+        for se in data.syzefxis.by_vat[vat]:
+            if se.source.startswith('00'):
+                org.phone.add(URIRef("tel:+" + se.source[2:]))
+
+logging.info("Processing categories")
+for id, cat in categories.items():
+    cat.label = Literal(data.type_name[id], lang="el")
 
 
 ## Validate model
@@ -100,3 +131,5 @@ g.add(organizations.values())
 logging.info("Serializing RDF graph")
 with open(args.output, 'wb') as f:
     g.serialize(f, format=args.format)
+
+logging.info("Done")

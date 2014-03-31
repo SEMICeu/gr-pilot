@@ -22,9 +22,9 @@ import re
 import unicodedata
 
 
-# Translation table mapping greek characters to their ASCII lookalike
+# Translation table mapping ASCII characters to their Greek lookalike
 # counterpart
-GREEK_LOOKALIKE = str.maketrans("ΑΒΕΖΗΙΚΜΝΟΡΤΥΧ", "ABEZHIKMNOPTYX")
+GREEK_LOOKALIKE = str.maketrans("ABEZHIKMNOPTYX", "ΑΒΕΖΗΙΚΜΝΟΡΤΥΧ")
 
 
 def strip_diacritics(s):

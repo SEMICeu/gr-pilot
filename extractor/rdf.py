@@ -204,9 +204,10 @@ class Resource:
     '''
 
     def __init__(self, uri):
-        if self.CONCEPT_NAME and not isinstance(uri, URIRef):
-            uri = URIRef(BASE_URI + self.CONCEPT_NAME + "/" + uri)
-        assert isinstance(uri, URIRef)
+        if not isinstance(uri, URIRef):
+            if self.CONCEPT_NAME:
+                uri = self.CONCEPT_NAME + "/" + str(uri)
+            uri = URIRef(BASE_URI + str(uri))
         self.uri = uri
         for name, prop in self.properties():
             setattr(self, name, set())

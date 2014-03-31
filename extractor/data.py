@@ -61,80 +61,6 @@ assert len(census.cid_by_norm) == len(census.name), "Normalized name clash"
 
 ###############################################################################
 
-logging.debug("Loading transparency.csv")
-
-COLUMNS_TRANSPARENCY = {"Αναγνωριστικό": 'pk',
-                        "ΑΦΜ": 'vat',
-                        "ΕΠΩΝΥΜΙΑ": 'name',
-                        "ΝΟΜΙΚΗ ΜΟΡΦΗ": 'type',
-                        "ΕΠΟΠΤΕΥΩΝ": 'parent_name',
-                        "ΑΦΜ ΕΠΟΠΤΕΥΟΝΤΟΣ": 'parent_vat',
-                        "ID ΦΟΡΕΑ ΔΙΑΥΓΕΙΑ": 'tid',
-                        "ID ΦΟΡΕΑ ΑΠΟΓΡΑΦΗ": 'cid'}
-
-def cleanup_transparency(e):
-    # Discard rows with empty names
-    if not e.name:
-        return False
-    # Precompute normalized name
-    e.norm = utils.namenorm(e.name)
-    # Normalize empty VATs
-    if e.vat == '-' or re.match(r"^x+$", e.vat):
-        e.vat = ''
-    # Find additional cid based on name mapping
-    if not e.cid and e.norm in census.cid_by_norm:
-        e.cid = census.cid_by_norm[e.norm]
-    return True
-
-transparency = dataset.Dataset("transparency.csv", COLUMNS_TRANSPARENCY,
-                               'pk', cleanup_transparency)
-
-transparency.by_vat = transparency.create_index('vat')
-transparency.by_tid = transparency.create_index('tid')
-transparency.by_cid = transparency.create_index('cid')
-
-for vat in [vat for vat in transparency.by_vat if not vat.isdigit()]:
-    entries = transparency.by_vat[vat]
-    del transparency.by_vat[vat]
-    if re.match(r"^\d+-\d+$", vat):
-        start, end = vat.split('-')
-        vats = [str(i) for i in range(int(start), int(end)+1)]
-        del start, end
-    else:
-        vats = re.findall(r"\d{9}", vat)
-    for vat in vats:
-        if vat not in transparency.by_vat:
-            transparency.by_vat[vat] = set()
-        transparency.by_vat[vat].update(entries)
-del entries, vat, vats
-
-###############################################################################
-
-logging.debug("Loading syzefxis.csv")
-
-COLUMNS_SYZEFXIS = {"Αναγνωριστικό": 'pk',
-                    "AFM": 'vat',
-                    "CUSTOMER_NAME": 'name',
-                    "EVENT_SOURCE": 'source',
-                    "SERVICE_ADDRESS": 'address',
-                    "SERVICE_CITY": 'city',
-                    "SERVICE_ZIP_CODE": 'zip'}
-
-def cleanup_syzefxis(e):
-    # Discard rows with empty names
-    if not e.name:
-        return False
-    # Precompute normalized name
-    e.norm = utils.namenorm(e.name)
-    return True
-
-syzefxis = dataset.Dataset("syzefxis.csv", COLUMNS_SYZEFXIS,
-                           'pk', cleanup_syzefxis)
-
-syzefxis.by_vat = syzefxis.create_index('vat')
-
-###############################################################################
-
 logging.debug("Loading hierarchy.csv")
 
 COLUMNS_HIERARCHY = {"Αναγνωριστικό": 'pk',
@@ -178,6 +104,77 @@ COLUMNS_HIERARCHY_TYPES = {"Αναγνωριστικό": 'pk',
 type_name = {e.id:e.name
              for e in dataset.Dataset("hierarchy_types.csv",
                                       COLUMNS_HIERARCHY_TYPES, 'id')}
+
+###############################################################################
+
+logging.debug("Loading transparency.csv")
+
+COLUMNS_TRANSPARENCY = {"Αναγνωριστικό": 'pk',
+                        "ΑΦΜ": 'vat',
+                        "ΕΠΩΝΥΜΙΑ": 'name',
+                        "ΝΟΜΙΚΗ ΜΟΡΦΗ": 'type',
+                        "ΕΠΟΠΤΕΥΩΝ": 'parent_name',
+                        "ΑΦΜ ΕΠΟΠΤΕΥΟΝΤΟΣ": 'parent_vat',
+                        "ID ΦΟΡΕΑ ΔΙΑΥΓΕΙΑ": 'tid',
+                        "ID ΦΟΡΕΑ ΑΠΟΓΡΑΦΗ": 'cid'}
+
+def cleanup_transparency(e):
+    # Discard rows with empty names
+    if not e.name:
+        return False
+    # Discard rows with empty/invalid VATs
+    if not re.match(r"^\d{9}$", e.vat):
+        return False
+    # Precompute normalized names
+    e.norm = utils.namenorm(e.name)
+    e.type_norm = utils.namenorm(e.type)
+    e.parent_norm = utils.namenorm(e.parent_name)
+    # Find additional cid based on name mapping
+    if not e.cid and e.norm in census.cid_by_norm:
+        e.cid = census.cid_by_norm[e.norm]
+    if not e.cid and e.norm in hierarchy:
+        e.cid = next(iter(hierarchy.by_norm[e.norm])).cid
+    return True
+
+transparency = dataset.Dataset("transparency.csv", COLUMNS_TRANSPARENCY,
+                               'pk', cleanup_transparency)
+
+transparency.by_vat = transparency.create_index('vat')
+transparency.by_tid = transparency.create_index('tid')
+transparency.by_cid = transparency.create_index('cid')
+transparency.by_norm = transparency.create_index('norm')
+
+transparency.type_by_typenorm = transparency.create_index('type_norm', 'type')
+
+# Find VAT of parent if only name is given
+for e in transparency:
+    if not e.parent_vat and e.parent_norm in transparency.by_norm:
+        e.parent_vat = next(iter(transparency.by_norm[e.parent_norm])).vat
+
+###############################################################################
+
+logging.debug("Loading syzefxis.csv")
+
+COLUMNS_SYZEFXIS = {"Αναγνωριστικό": 'pk',
+                    "AFM": 'vat',
+                    "CUSTOMER_NAME": 'name',
+                    "EVENT_SOURCE": 'source',
+                    "SERVICE_ADDRESS": 'address',
+                    "SERVICE_CITY": 'city',
+                    "SERVICE_ZIP_CODE": 'zip'}
+
+def cleanup_syzefxis(e):
+    # Discard rows with empty names
+    if not e.name:
+        return False
+    # Precompute normalized name
+    e.norm = utils.namenorm(e.name)
+    return True
+
+syzefxis = dataset.Dataset("syzefxis.csv", COLUMNS_SYZEFXIS,
+                           'pk', cleanup_syzefxis)
+
+syzefxis.by_vat = syzefxis.create_index('vat')
 
 ###############################################################################
 
