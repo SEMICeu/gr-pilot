@@ -47,6 +47,8 @@ def cleanup_census(e):
     # Discard rows with empty names
     if not e.name:
         return False
+    # Fix encoding
+    e.name = e.name.translate(utils.GREEK_LOOKALIKE)
     # Precompute normalized name
     e.norm = utils.namenorm(e.name)
     return True
@@ -75,6 +77,8 @@ def cleanup_hierarchy(e):
     # Discard rows with empty name or empty cid
     if not e.name or not e.cid:
         return False
+    # Fix encoding
+    e.name = e.name.translate(utils.GREEK_LOOKALIKE)
     # Precompute normalized name
     e.norm = utils.namenorm(e.name)
     # Fix column shift in some rows
@@ -101,9 +105,15 @@ COLUMNS_HIERARCHY_TYPES = {"Αναγνωριστικό": 'pk',
                            "ID": 'id',
                            "TYPOSNAME": 'name'}
 
+def cleanup_hierarchy_types(e):
+    # Fix encoding
+    e.name = e.name.translate(utils.GREEK_LOOKALIKE)
+    return True
+
 type_name = {e.id:e.name
              for e in dataset.Dataset("hierarchy_types.csv",
-                                      COLUMNS_HIERARCHY_TYPES, 'id')}
+                                      COLUMNS_HIERARCHY_TYPES, 'id',
+                                      cleanup_hierarchy_types)}
 
 ###############################################################################
 
@@ -125,6 +135,9 @@ def cleanup_transparency(e):
     # Discard rows with empty/invalid VATs
     if not re.match(r"^\d{9}$", e.vat):
         return False
+    # Fix encoding
+    e.name = e.name.translate(utils.GREEK_LOOKALIKE)
+    e.parent_name = e.parent_name.translate(utils.GREEK_LOOKALIKE)
     # Precompute normalized names
     e.norm = utils.namenorm(e.name)
     e.type_norm = utils.namenorm(e.type)
@@ -167,6 +180,8 @@ def cleanup_syzefxis(e):
     # Discard rows with empty names
     if not e.name:
         return False
+    # Fix encoding
+    e.name = e.name.translate(utils.GREEK_LOOKALIKE)
     # Precompute normalized name
     e.norm = utils.namenorm(e.name)
     return True
