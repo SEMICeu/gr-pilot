@@ -68,19 +68,16 @@
         <title>About: <xsl:call-template name="target-label" /></title>
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <link rel="stylesheet" type="text/css" href="/css/normalize.css" />
-        <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400italic,600,600italic,300" />
+        <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600&amp;subset=latin,greek" />
         <link rel="stylesheet" type="text/css" href="/css/screen.css" />
         <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
       </head>
       <body>
+      <div class="wrapper">
       <header>
-        <div class="logo">
-          <a href="https://www.semic.eu">
-            <img src="/images/semic_logo.png" alt="SEMIC logo" width="90" height="90" />
-          </a>
-        </div>
-        <h1>Greek Open Data pilot</h1>
-        <p class="subtitle">A hierarchy of public administrations</p>
+        <a href="/">
+          <img src="/images/logo.png" alt="Υπουργείο Διοικητικής Μεταρρύθμισης και Ηλεκτρονικής Διακυβέρνησης" height="70" width="370" />
+        </a>
       </header>
 
       <xsl:choose>
@@ -110,6 +107,7 @@
       <footer>
         <p>Work in progress.</p>
       </footer>
+      </div>
       <script type="text/javascript"><xsl:text>
         var _gaq = _gaq || [];
         _gaq.push(['_setAccount', 'UA-38243808-1']);
