@@ -49,9 +49,11 @@
   xmlns:ns="http://semic.eu/namespaces"
   exclude-result-prefixes="xsl res ns">
 
+  <xsl:param name="baseuri" select="'http://data.ydmed.gov.gr/'" />
+
   <xsl:output method="html" indent="yes" encoding="UTF-8" />
 
-  <xsl:variable name="namespaces" select="document('http://data.ydmed.gov.gr/namespaces.xml')" />
+  <xsl:variable name="namespaces" select="document(concat($baseuri, 'namespaces.xml'))" />
 
   <xsl:variable name="target" select="//res:result/res:binding[@name='target'][1]" />
 
@@ -314,10 +316,17 @@
   <!-- Return a resolvable URI -->
   <xsl:template name="resolve-uri">
     <xsl:param name="uri" />
-    <xsl:text>/about/</xsl:text>
-    <xsl:call-template name="urlencode">
-      <xsl:with-param name="value" select="$uri" />
-    </xsl:call-template>
+    <xsl:choose>
+      <xsl:when test="starts-with($uri, $baseuri)">
+        <xsl:value-of select="$uri" />
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>/about/</xsl:text>
+        <xsl:call-template name="urlencode">
+          <xsl:with-param name="value" select="$uri" />
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <!-- Print the CURIE version of a URI using the namespaces defined in an
