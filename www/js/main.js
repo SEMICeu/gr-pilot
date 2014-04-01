@@ -26,8 +26,7 @@ $.fn.filterfind = function(selector) {
 
 function doSearch() {
   var query = $("#query").val();
-  var sparql = 'PREFIX rov: <http://www.w3.org/ns/regorg#> ' +
-               'SELECT DISTINCT * WHERE { ?id a rov:RegisteredOrganization ; ' +
+  var sparql = 'SELECT DISTINCT * WHERE { ?id a rov:RegisteredOrganization ; ' +
                'rdfs:label ?label . ';
   if(query) {
     query = query.replace('\\', '\\\\')
@@ -44,7 +43,7 @@ function doSearch() {
             $.param({
               'query': sparql,
               'format': "application/sparql-results+xml",
-              'xslt-uri': "http://data.ydmed.gov.gr/sparql-table.xsl"
+              'xslt-uri': "file://gr-pilot/xslt/sparql-table.xsl"
             }) +
             '">See all results &raquo;</a></p>');
   var sparql_limited = sparql + ' LIMIT 10';
@@ -52,7 +51,7 @@ function doSearch() {
   $.get("/sparql", {
     'query': sparql_limited,
     'format': "application/sparql-results+xml",
-    'xslt-uri': "http://data.ydmed.gov.gr/sparql-table.xsl"
+    'xslt-uri': "file://gr-pilot/xslt/sparql-table.xsl"
   }, function(data) {
     $("#results").prepend($(data).filterfind("#results").contents());
   });
@@ -67,7 +66,7 @@ function initCategories() {
   $.get("/sparql", {
     'query': sparql,
     'format': "application/sparql-results+xml",
-    'xslt-uri': "http://data.ydmed.gov.gr/uri-list.xsl"
+    'xslt-uri': "file://gr-pilot/xslt/uri-list.xsl"
   }, function(data) {
     $("#categories").prepend(data);
   });

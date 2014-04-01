@@ -46,14 +46,11 @@
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:res="http://www.w3.org/2005/sparql-results#"
-  xmlns:ns="http://semic.eu/namespaces"
-  exclude-result-prefixes="xsl res ns">
+  exclude-result-prefixes="xsl res">
 
-  <xsl:param name="baseuri" select="'http://data.ydmed.gov.gr/'" />
+  <xsl:include href="file://gr-pilot/xslt/include.xsl" />
 
   <xsl:output method="html" indent="yes" encoding="UTF-8" />
-
-  <xsl:variable name="namespaces" select="document(concat($baseuri, 'namespaces.xml'))" />
 
   <xsl:variable name="target" select="//res:result/res:binding[@name='target'][1]" />
 
@@ -63,66 +60,36 @@
 
   <!-- Root template -->
   <xsl:template match="res:sparql">
-    <xsl:text disable-output-escaping='yes'>&lt;!DOCTYPE html></xsl:text>
-    <html>
-      <head>
-        <meta charset="UTF-8" />
-        <title>About: <xsl:call-template name="target-label" /></title>
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <link rel="stylesheet" type="text/css" href="/css/normalize.css" />
-        <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600&amp;subset=latin,greek" />
-        <link rel="stylesheet" type="text/css" href="/css/screen.css" />
-        <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
-      </head>
-      <body>
-      <div class="wrapper">
-      <header>
-        <a href="/">
-          <img src="/images/logo.png" alt="Υπουργείο Διοικητικής Μεταρρύθμισης και Ηλεκτρονικής Διακυβέρνησης" height="70" width="370" />
-        </a>
-      </header>
+    <xsl:call-template name="html">
+      <xsl:with-param name="title">
+        About: <xsl:call-template name="target-label" />
+      </xsl:with-param>
+      <xsl:with-param name="body">
+        <xsl:choose>
+          <xsl:when test="$target">
+            <section>
+              <xsl:call-template name="info" />
+            </section>
 
-      <xsl:choose>
-        <xsl:when test="$target">
-          <section>
-            <xsl:call-template name="info" />
-          </section>
+            <section>
+              <h2>Properties</h2>
+              <xsl:call-template name="properties" />
+            </section>
 
-          <section>
-            <h2>Properties</h2>
-            <xsl:call-template name="properties" />
-          </section>
-
-          <section>
-            <h2>Referenced by</h2>
-            <xsl:call-template name="inverse-properties" />
-          </section>
-        </xsl:when>
-        <xsl:otherwise>
-          <section>
-            <h2>About</h2>
-            <div class="error">The resource you are looking for was not found.</div>
-          </section>
-        </xsl:otherwise>
-      </xsl:choose>
-
-      <footer>
-        <p>Work in progress.</p>
-      </footer>
-      </div>
-      <script type="text/javascript"><xsl:text>
-        var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', 'UA-38243808-1']);
-        _gaq.push(['_trackPageview']);
-
-        (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-        })();
-      </xsl:text></script>
-      </body>
-    </html>
+            <section>
+              <h2>Referenced by</h2>
+              <xsl:call-template name="inverse-properties" />
+            </section>
+          </xsl:when>
+          <xsl:otherwise>
+            <section>
+              <h2>About</h2>
+              <div class="error">The resource you are looking for was not found.</div>
+            </section>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:with-param>
+    </xsl:call-template>
   </xsl:template>
 
   <!-- Print the information section -->
@@ -293,10 +260,6 @@
     <xsl:value-of select="text()" />
   </xsl:template>
 
-  <!--
-    Utilities
-  -->
-
   <!-- Print the label of the target, or its stripped URI if there is no label.
   -->
   <xsl:template name="target-label">
@@ -311,104 +274,6 @@
         </xsl:call-template>
       </xsl:otherwise>
     </xsl:choose>
-  </xsl:template>
-
-  <!-- Return a resolvable URI -->
-  <xsl:template name="resolve-uri">
-    <xsl:param name="uri" />
-    <xsl:choose>
-      <xsl:when test="starts-with($uri, $baseuri)">
-        <xsl:value-of select="$uri" />
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:text>/about/</xsl:text>
-        <xsl:call-template name="urlencode">
-          <xsl:with-param name="value" select="$uri" />
-        </xsl:call-template>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
-  <!-- Print the CURIE version of a URI using the namespaces defined in an
-  external document. -->
-  <xsl:template name="to-curie">
-    <xsl:param name="uri" />
-    <xsl:param name="strip" select="false()" /><!-- fallback to strip-uri? -->
-    <xsl:choose>
-      <xsl:when test="$namespaces//ns:namespace[starts-with($uri, ns:uri)]">
-        <xsl:variable name="ns" select="$namespaces//ns:namespace[starts-with($uri, ns:uri)]" />
-        <xsl:value-of select="$ns/ns:prefix" />
-        <xsl:text>:</xsl:text>
-        <xsl:value-of select="substring($uri, string-length($ns/ns:uri) + 1)" />
-      </xsl:when>
-      <xsl:when test="$strip">
-        <xsl:call-template name="strip-uri">
-          <xsl:with-param name="uri" select="$uri" />
-        </xsl:call-template>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:value-of select="$uri" />
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
-  <!-- Strip a URI to its last component. E.g., http://example.com/id/test/
-  would become test, and http://example.com/def#property would become property.
-  -->
-  <xsl:template name="strip-uri">
-    <xsl:param name="uri" />
-    <xsl:choose>
-      <xsl:when test="contains($uri, '/')">
-        <xsl:choose>
-          <xsl:when test="substring-after($uri, '/') = ''">
-            <xsl:value-of select="substring-before($uri, '/')" />
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:call-template name="strip-uri">
-              <xsl:with-param name="uri" select="substring-after($uri, '/')" />
-            </xsl:call-template>
-          </xsl:otherwise>
-        </xsl:choose>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:choose>
-          <xsl:when test="contains($uri, '#')">
-            <xsl:value-of select="substring-after($uri, '#')" />
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:value-of select="$uri" />
-          </xsl:otherwise>
-        </xsl:choose>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
-  <!-- URL-encode a value -->
-	<xsl:variable name="url-hex" select="'0123456789ABCDEF'"/>
-	<xsl:variable name="url-ascii"> !"#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~</xsl:variable>
-	<xsl:variable name="url-safe">!'()*-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~</xsl:variable>
-  <xsl:template name="urlencode">
-    <xsl:param name="value" />
-    <xsl:if test="$value">
-      <xsl:variable name="char" select="substring($value,1,1)" />
-      <xsl:choose>
-        <xsl:when test="contains($url-safe, $char)">
-          <xsl:value-of select="$char" />
-        </xsl:when>
-        <xsl:when test="contains($url-ascii, $char)">
-          <xsl:variable name="codepoint" select="string-length(substring-before($url-ascii,$char)) + 32" />
-          <xsl:variable name="hex-digit1" select="substring($url-hex, floor($codepoint div 16) + 1,1)" />
-          <xsl:variable name="hex-digit2" select="substring($url-hex, $codepoint mod 16 + 1,1)" />
-          <xsl:value-of select="concat('%', $hex-digit1, $hex-digit2)" />
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="$char" />
-        </xsl:otherwise>
-      </xsl:choose>
-      <xsl:call-template name="urlencode">
-        <xsl:with-param name="value" select="substring($value, 2)" />
-      </xsl:call-template>
-    </xsl:if>
   </xsl:template>
 
 </xsl:stylesheet>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Known namespaces for use by about.xsl
+  Known namespaces for use by to-curie template in include.xsl
 -->
 <namespaces xmlns="http://semic.eu/namespaces">
   <namespace>

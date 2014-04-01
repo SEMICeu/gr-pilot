@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  XSLT script to format SPARQL SELECT results (in application/sparql-results+xml
-  format) in a table.
+  Common XSLT templates
 
   Copyright 2014 European Union
 
@@ -20,20 +19,25 @@
   express or implied.
   See the Licence for the specific language governing
   permissions and limitations under the Licence.
+
 -->
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:res="http://www.w3.org/2005/sparql-results#"
-  exclude-result-prefixes="xsl res">
+  xmlns:ns="http://semic.eu/namespaces"
+  exclude-result-prefixes="xsl ns">
 
-  <xsl:output method="html" indent="yes" encoding="UTF-8" />
+  <xsl:param name="baseuri" select="'http://data.ydmed.gov.gr/'" />
+  <xsl:variable name="namespaces" select="document('file://gr-pilot/xslt/namespaces.xml')" />
 
-  <xsl:template match="res:sparql">
+  <!-- Standard HTML boilerplate -->
+  <xsl:template name="html">
+    <xsl:param name="title" />
+    <xsl:param name="body" />
     <xsl:text disable-output-escaping='yes'>&lt;!DOCTYPE html></xsl:text>
     <html>
       <head>
         <meta charset="UTF-8" />
-        <title>Query results – Greek Open Data pilot</title>
+        <title><xsl:value-of select="title" /></title>
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <link rel="stylesheet" type="text/css" href="/css/normalize.css" />
         <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600&amp;subset=latin,greek" />
@@ -42,23 +46,15 @@
       </head>
       <body>
       <div class="wrapper">
-      <header>
-        <a href="/">
-          <img src="/images/logo.png" alt="Υπουργείο Διοικητικής Μεταρρύθμισης και Ηλεκτρονικής Διακυβέρνησης" height="70" width="370" />
-        </a>
-      </header>
-
-      <section>
-        <h2>Query results</h2>
-        <p><a href="/">« Return to the homepage</a></p>
-        <div id="results">
-          <xsl:call-template name="results" />
-        </div>
-      </section>
-
-      <footer>
-        <p>Work in progress.</p>
-      </footer>
+        <header>
+          <a href="/">
+            <img src="/images/logo.png" alt="Υπουργείο Διοικητικής Μεταρρύθμισης και Ηλεκτρονικής Διακυβέρνησης" height="70" width="370" />
+          </a>
+        </header>
+        <xsl:copy-of select="$body" />
+        <footer>
+          <p>Work in progress.</p>
+        </footer>
       </div>
       <script type="text/javascript"><xsl:text>
         var _gaq = _gaq || [];
@@ -75,58 +71,27 @@
     </html>
   </xsl:template>
 
-  <xsl:template name="results">
-    <table>
-      <thead>
-        <tr>
-          <xsl:for-each select="//res:head/res:variable">
-            <th><xsl:value-of select="@name" /></th>
-          </xsl:for-each>
-        </tr>
-      </thead>
-      <tbody>
-        <xsl:for-each select="//res:result">
-          <tr>
-            <xsl:apply-templates select="."/>
-          </tr>
-        </xsl:for-each>
-      </tbody>
-    </table>
-  </xsl:template>
-
-  <xsl:template match="res:result">
-    <xsl:variable name="current" select="." />
-    <xsl:for-each select="//res:head/res:variable">
-      <xsl:variable name="name" select="@name" />
-      <td>
-        <xsl:if test="$current/res:binding[@name=$name]">
-          <xsl:apply-templates select="$current/res:binding[@name=$name]" />
-        </xsl:if>
-      </td>
-    </xsl:for-each>
-  </xsl:template>
-
-  <xsl:template match="res:bnode">
-    <xsl:text>(</xsl:text>
-    <xsl:value-of select="text()" />
-    <xsl:text>)</xsl:text>
-  </xsl:template>
-
-  <xsl:template match="res:uri">
-    <a>
-      <xsl:attribute name="href">
-        <xsl:call-template name="resolve-uri">
-          <xsl:with-param name="uri" select="text()" />
+  <!-- Print the CURIE version of a URI using the namespaces defined in an
+  external document. -->
+  <xsl:template name="to-curie">
+    <xsl:param name="uri" />
+    <xsl:param name="strip" select="false()" /><!-- fallback to strip-uri? -->
+    <xsl:choose>
+      <xsl:when test="$namespaces//ns:namespace[starts-with($uri, ns:uri)]">
+        <xsl:variable name="ns" select="$namespaces//ns:namespace[starts-with($uri, ns:uri)]" />
+        <xsl:value-of select="$ns/ns:prefix" />
+        <xsl:text>:</xsl:text>
+        <xsl:value-of select="substring($uri, string-length($ns/ns:uri) + 1)" />
+      </xsl:when>
+      <xsl:when test="$strip">
+        <xsl:call-template name="strip-uri">
+          <xsl:with-param name="uri" select="$uri" />
         </xsl:call-template>
-      </xsl:attribute>
-      <xsl:call-template name="strip-uri">
-        <xsl:with-param name="uri" select="text()" />
-      </xsl:call-template>
-    </a>
-  </xsl:template>
-
-  <xsl:template match="res:literal">
-    <xsl:value-of select="text()" />
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$uri" />
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <!-- Strip a URI to its last component. E.g., http://example.com/id/test/
@@ -160,13 +125,21 @@
     </xsl:choose>
   </xsl:template>
 
-  <!-- Return a resolvable URI -->
+  <!-- Return URI resolved through the /about service if it is not one of
+  our own URIs. -->
   <xsl:template name="resolve-uri">
     <xsl:param name="uri" />
-    <xsl:text>/about/</xsl:text>
-    <xsl:call-template name="urlencode">
-      <xsl:with-param name="value" select="$uri" />
-    </xsl:call-template>
+    <xsl:choose>
+      <xsl:when test="starts-with($uri, $baseuri)">
+        <xsl:value-of select="$uri" />
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>/about/</xsl:text>
+        <xsl:call-template name="urlencode">
+          <xsl:with-param name="value" select="$uri" />
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <!-- URL-encode a value -->
