@@ -131,6 +131,10 @@ dl.properties dd {
   width: 80%;
 }
 
+#map {
+  height: 400px;
+}
+
 .error {
   color: #a40000;
   font-weight: 600;

@@ -24,7 +24,10 @@
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:ns="http://semic.eu/namespaces"
-  exclude-result-prefixes="xsl ns">
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xmlns:locn="http://www.w3.org/ns/locn#"
+  exclude-result-prefixes="xsl ns rdf rdfs locn">
 
   <xsl:param name="baseuri" select="'http://data.ydmed.gov.gr/'" />
   <xsl:variable name="namespaces" select="document('file://gr-pilot/xslt/namespaces.xml')" />
@@ -33,6 +36,7 @@
   <xsl:template name="html">
     <xsl:param name="title" />
     <xsl:param name="body" />
+    <xsl:param name="leaflet" select="false()" />
     <xsl:text disable-output-escaping='yes'>&lt;!DOCTYPE html></xsl:text>
     <html>
       <head>
@@ -43,6 +47,10 @@
         <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600&amp;subset=latin,greek" />
         <link rel="stylesheet" type="text/css" href="/css/screen.css" />
         <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+        <xsl:if test="$leaflet">
+          <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+          <script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+        </xsl:if>
       </head>
       <body>
       <div class="wrapper">
@@ -56,6 +64,9 @@
           <p>Work in progress.</p>
         </footer>
       </div>
+      <xsl:if test="$leaflet">
+        <script type="text/javascript" src="/js/map.js"></script>
+      </xsl:if>
       <script type="text/javascript"><xsl:text>
         var _gaq = _gaq || [];
         _gaq.push(['_setAccount', 'UA-38243808-1']);
@@ -69,6 +80,33 @@
       </xsl:text></script>
       </body>
     </html>
+  </xsl:template>
+
+  <!-- Add a marker for the specific address to a map. -->
+  <xsl:template name="map-address">
+    <xsl:param name="address" /><!-- the locn:Address resource -->
+    <a>
+      <xsl:attribute name="href">
+        <xsl:value-of select="$address/@rdf:about" />
+      </xsl:attribute>
+      <xsl:attribute name="nominatim">
+        <xsl:value-of select="$address/locn:thoroughfare" />
+        <xsl:text>,</xsl:text>
+        <xsl:value-of select="$address/locn:adminUnitL2" />
+        <xsl:text> </xsl:text>
+        <xsl:choose>
+          <xsl:when test="($address/locn:adminUnitL1 = 'ΕΛΛΑΔΑ') and (string-length($address/locn:postCode) = 5)">
+            <xsl:value-of select="substring($address/locn:postCode, 1, 3)" />
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="$address/locn:postCode" />
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:text>,</xsl:text>
+        <xsl:value-of select="$address/locn:adminUnitL1" />
+      </xsl:attribute>
+      <xsl:value-of select="$address/rdfs:label" />
+    </a>
   </xsl:template>
 
   <!-- Print the CURIE version of a URI using the namespaces defined in an
