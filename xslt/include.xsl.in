@@ -82,7 +82,9 @@
     </html>
   </xsl:template>
 
-  <!-- Add a marker for the specific address to a map. -->
+  <!-- Add a marker for the specific address to a map.
+  For use with RDF/XML source documents only.
+  -->
   <xsl:template name="map-address">
     <xsl:param name="address" /><!-- the locn:Address resource -->
     <a>
@@ -106,6 +108,31 @@
         <xsl:value-of select="$address/locn:adminUnitL1" />
       </xsl:attribute>
       <xsl:value-of select="$address/rdfs:label" />
+    </a>
+  </xsl:template>
+
+  <!-- Add a HTML link for a resource, with the rdfs:label if it exists.
+  For use with RDF/XML source documents only. -->
+  <xsl:template name="rdf-link">
+    <xsl:param name="uri" />
+    <xsl:variable name="label" select="//rdf:Description[@rdf:about=$uri]/rdfs:label" />
+    <a>
+      <xsl:attribute name="href">
+        <xsl:call-template name="resolve-uri">
+          <xsl:with-param name="uri" select="$uri" />
+        </xsl:call-template>
+      </xsl:attribute>
+      <xsl:choose>
+        <xsl:when test="$label">
+          <xsl:value-of select="$label" />
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="to-curie">
+            <xsl:with-param name="uri" select="$uri" />
+            <xsl:with-param name="strip" select="true()" />
+          </xsl:call-template>
+        </xsl:otherwise>
+      </xsl:choose>
     </a>
   </xsl:template>
 
