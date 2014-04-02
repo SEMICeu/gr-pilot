@@ -25,6 +25,8 @@ BASEURI="http://data.ydmed.gov.gr/"
 ROOTURI="file://gr-pilot/"
 GOOGLE_ANALYTICS="UA-38243808-1"
 
+GENERATE=true
+
 # Usage notice
 usage() {
     cat <<EOF
@@ -35,16 +37,18 @@ Options:
   -r URI    The (internal) URI of the root directory
               (default: ${ROOTURI})
   -a KEY    Google Analytics key (default: ${GOOGLE_ANALYTICS})
+  -c        Remove generated files
   -h        This help screen
 EOF
 }
 
 # Parse arguments
-while getopts 'b:r:h' opt; do
+while getopts 'b:r:a:ch' opt; do
     case "${opt}" in
     b) BASEURI=${OPTARG%/}/ ;;
     r) ROOTURI=${OPTARG%/}/ ;;
     a) GOOGLE_ANALYTICS=${OPTARG} ;;
+    c) GENERATE=false ;;
     h) usage ; exit 0 ;;
     *) usage ; exit 1 ;;
     esac
@@ -61,6 +65,11 @@ done
 find -name '*.in' |
 while read -r infile; do
     outfile=${infile%.in}
-    printf 'Writing %s.\n' "${outfile}"
-    cat "${infile}" | sed "${sed}" > "${outfile}"
+    if ${GENERATE}; then
+        printf 'Writing %s.\n' "${outfile}"
+        cat "${infile}" | sed "${sed}" > "${outfile}"
+    elif [ -e "${outfile}" ]; then
+        printf 'Removing %s.\n' "${outfile}"
+        rm "${outfile}"
+    fi
 done
