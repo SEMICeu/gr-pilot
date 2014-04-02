@@ -41,7 +41,7 @@
     <html>
       <head>
         <meta charset="UTF-8" />
-        <title><xsl:value-of select="title" /></title>
+        <title><xsl:value-of select="$title" /></title>
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <link rel="stylesheet" type="text/css" href="/css/normalize.css" />
         <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600&amp;subset=latin,greek" />
