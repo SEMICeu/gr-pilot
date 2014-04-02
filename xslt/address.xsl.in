@@ -55,7 +55,7 @@
   xmlns:locn="http://www.w3.org/ns/locn#"
   exclude-result-prefixes="xsl rdf rdfs locn">
 
-  <xsl:include href="file://gr-pilot/xslt/include.xsl" />
+  <xsl:include href="%ROOTURI%xslt/include.xsl" />
 
   <xsl:output method="html" indent="yes" encoding="UTF-8" />
 

@@ -26,7 +26,7 @@
   xmlns:res="http://www.w3.org/2005/sparql-results#"
   exclude-result-prefixes="xsl res">
 
-  <xsl:include href="file://gr-pilot/xslt/include.xsl" />
+  <xsl:include href="%ROOTURI%xslt/include.xsl" />
 
   <xsl:output method="html" indent="yes" encoding="UTF-8" />
 

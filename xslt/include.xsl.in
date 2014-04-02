@@ -29,8 +29,8 @@
   xmlns:locn="http://www.w3.org/ns/locn#"
   exclude-result-prefixes="xsl ns rdf rdfs locn">
 
-  <xsl:param name="baseuri" select="'http://data.ydmed.gov.gr/'" />
-  <xsl:variable name="namespaces" select="document('file://gr-pilot/xslt/namespaces.xml')" />
+  <xsl:param name="baseuri" select="'%BASEURI%'" />
+  <xsl:variable name="namespaces" select="document('%ROOTURI%xslt/namespaces.xml')" />
 
   <!-- Standard HTML boilerplate -->
   <xsl:template name="html">
@@ -69,7 +69,7 @@
       </xsl:if>
       <script type="text/javascript"><xsl:text>
         var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', 'UA-38243808-1']);
+        _gaq.push(['_setAccount', '%GOOGLE_ANALYTICS%']);
         _gaq.push(['_trackPageview']);
 
         (function() {

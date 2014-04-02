@@ -43,7 +43,7 @@ function doSearch() {
             $.param({
               'query': sparql,
               'format': "application/sparql-results+xml",
-              'xslt-uri': "file://gr-pilot/xslt/sparql-table.xsl"
+              'xslt-uri': "%ROOTURI%xslt/sparql-table.xsl"
             }) +
             '">See all results &raquo;</a></p>');
   var sparql_limited = sparql + ' LIMIT 10';
@@ -51,7 +51,7 @@ function doSearch() {
   $.get("/sparql", {
     'query': sparql_limited,
     'format': "application/sparql-results+xml",
-    'xslt-uri': "file://gr-pilot/xslt/sparql-table.xsl"
+    'xslt-uri': "%ROOTURI%xslt/sparql-table.xsl"
   }, function(data) {
     $("#results").prepend($(data).filterfind("#results").contents());
   });
@@ -59,14 +59,14 @@ function doSearch() {
 
 function initCategories() {
   var sparql = 'SELECT DISTINCT * WHERE { ?uri a skos:Concept ; ' +
-               'skos:topConceptOf <http://data.ydmed.gov.gr/id/category> ; ' +
+               'skos:topConceptOf <%BASEURI%id/category> ; ' +
                'rdfs:label ?label . ' +
                '} ORDER BY ?label';
   console.log("Executing query: " + sparql);
   $.get("/sparql", {
     'query': sparql,
     'format': "application/sparql-results+xml",
-    'xslt-uri': "file://gr-pilot/xslt/uri-list.xsl"
+    'xslt-uri': "%ROOTURI%xslt/uri-list.xsl"
   }, function(data) {
     $("#categories").prepend(data);
   });
