@@ -24,7 +24,11 @@ $(function() {
   // Get addresses inside #map
   var addresses = $("#map > a").detach();
   // Initialize map
-  var map = L.map('map');
+  var map = L.map('map', {
+    center: [38.746, 22.396],
+    zoom: 7,
+    minZoom: 6
+  });
   L.tileLayer('http://{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.jpg', {
     subdomains: ['otile1', 'otile2', 'otile3', 'otile4'],
     attribution: 'Map data &copy; <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors, Imagery &copy; <a href="http://open.mapquest.co.uk"  target="_blank">MapQuest</a>',
