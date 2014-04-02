@@ -67,25 +67,19 @@
       <xsl:with-param name="body">
         <xsl:choose>
           <xsl:when test="$target">
-            <section>
-              <xsl:call-template name="info" />
-            </section>
-
+            <xsl:call-template name="info" />
             <section>
               <h2>Properties</h2>
               <xsl:call-template name="properties" />
             </section>
-
             <section>
               <h2>Referenced by</h2>
               <xsl:call-template name="inverse-properties" />
             </section>
           </xsl:when>
           <xsl:otherwise>
-            <section>
-              <h2>About</h2>
-              <div class="error">The resource you are looking for was not found.</div>
-            </section>
+            <h1>About</h1>
+            <div class="error">The resource you are looking for was not found.</div>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:with-param>
@@ -94,7 +88,7 @@
 
   <!-- Print the information section -->
   <xsl:template name="info">
-    <h2><xsl:call-template name="target-label" /></h2>
+    <h1><xsl:call-template name="target-label" /></h1>
     <xsl:call-template name="target-description" />
     <dl class="properties">
       <dt>URI</dt>

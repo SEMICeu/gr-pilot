@@ -60,7 +60,9 @@
             <img src="/images/logo.png" alt="Υπουργείο Διοικητικής Μεταρρύθμισης και Ηλεκτρονικής Διακυβέρνησης" height="70" width="370" />
           </a>
         </header>
-        <xsl:copy-of select="$body" />
+        <article>
+          <xsl:copy-of select="$body" />
+        </article>
         <footer>
           <p>Work in progress.</p>
         </footer>

@@ -36,13 +36,11 @@
         Query results – Greek Open Data pilot
       </xsl:with-param>
       <xsl:with-param name="body">
-        <section>
-          <h2>Query results</h2>
-          <p><a href="/">« Return to the homepage</a></p>
-          <div id="results">
-            <xsl:call-template name="results" />
-          </div>
-        </section>
+        <h1>Query results</h1>
+        <p><a href="/">« Return to the homepage</a></p>
+        <div id="results">
+          <xsl:call-template name="results" />
+        </div>
       </xsl:with-param>
     </xsl:call-template>
   </xsl:template>

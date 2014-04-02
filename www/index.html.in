@@ -19,30 +19,30 @@
   </a>
 </header>
 
-<section id="introduction">
-  <h2>Introduction</h2>
+<article>
+  <h1>Greek Open Data pilot</h2>
 
   <p>Welcome to the Greek Open Data pilot. This site contains a hierarchy of public administrations in Greece. The hierarchy is represented with Linked Data.</p>
-</section>
 
-<section id="search">
-  <h2>Search</h2>
+  <section id="search">
+    <h2>Search</h2>
 
-  <div>
-    <form id="searchform">
-      <input id="query" type="text" />
-      <input type="submit" value="Search" />
-    </form>
-  </div>
-  <div id="results"></div>
-</section>
+    <div>
+      <form id="searchform">
+        <input id="query" type="text" />
+        <input type="submit" value="Search" />
+      </form>
+    </div>
+    <div id="results"></div>
+  </section>
 
-<section id="browse">
-  <h2>Browse</h2>
+  <section id="browse">
+    <h2>Browse</h2>
 
-  <p>To start browsing the hierarchy, choose a category:</p>
-  <div id="categories"></div>
-</section>
+    <p>To start browsing the hierarchy, choose a category:</p>
+    <div id="categories"></div>
+  </section>
+</article>
 
 <footer>
   <p>Work in progress.</p>
