@@ -162,4 +162,22 @@ dl.properties dd {
   margin-top: 0;
 }
 
+/* Responsive tweaks */
+
+@media screen and (max-width: 568px) {
+  .wrapper {
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  header, section, footer {
+    margin: 20px 20px;
+  }
+
+  section section {
+    margin: 10px 0;
+  }
+}
+
 /* vim:set ts=2 sw=2 et: */
