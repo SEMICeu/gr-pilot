@@ -82,7 +82,6 @@
         </xsl:choose>
       </xsl:with-param>
     </xsl:call-template>
-    <xsl:text disable-output-escaping='yes'>&lt;!DOCTYPE html></xsl:text>
   </xsl:template>
 
   <!-- Real content -->
