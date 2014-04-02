@@ -190,7 +190,7 @@
     </xsl:choose>
   </xsl:template>
 
-  <!-- Return URI resolved through the /about service if it is not one of
+  <!-- Return URI resolved through the /about/html service if it is not one of
   our own URIs. -->
   <xsl:template name="resolve-uri">
     <xsl:param name="uri" />
@@ -199,12 +199,23 @@
         <xsl:value-of select="$uri" />
       </xsl:when>
       <xsl:otherwise>
-        <xsl:text>/about/</xsl:text>
-        <xsl:call-template name="urlencode">
-          <xsl:with-param name="value" select="$uri" />
+        <xsl:call-template name="about-uri">
+          <xsl:with-param name="uri" select="$uri" />
         </xsl:call-template>
       </xsl:otherwise>
     </xsl:choose>
+  </xsl:template>
+
+  <!-- Return URI resolved though the /about service. -->
+  <xsl:template name="about-uri">
+    <xsl:param name="uri" />
+    <xsl:param name="format">html</xsl:param>
+    <xsl:text>/about/</xsl:text>
+    <xsl:value-of select="$format" />
+    <xsl:text>/</xsl:text>
+    <xsl:call-template name="urlencode">
+      <xsl:with-param name="value" select="$uri" />
+    </xsl:call-template>
   </xsl:template>
 
   <!-- URL-encode a value -->

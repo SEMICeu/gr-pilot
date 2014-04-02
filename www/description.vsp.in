@@ -15,7 +15,7 @@ if(_format = '') {
 
 if(_format = 'rdf') {
   http_proxy('data.ydmed.gov.gr',
-             vector(sprintf('GET /about/%U/rdf HTTP/1.0', uri)),
+             vector(sprintf('GET /about/rdf/%U HTTP/1.0', uri)),
              null);
   return null;
 }
@@ -102,7 +102,7 @@ if(_type = 'address') {
   stylesheet := 'organization.xsl';
 } else {
   http_proxy('data.ydmed.gov.gr',
-             vector(sprintf('GET /about/%U HTTP/1.0', uri)),
+             vector(sprintf('GET /about/html/%U HTTP/1.0', uri)),
              null);
   return null;
 }

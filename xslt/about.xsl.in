@@ -115,10 +115,10 @@
       <dt>Raw data</dt>
       <dd><a>
         <xsl:attribute name="href">
-          <xsl:call-template name="resolve-uri">
+          <xsl:call-template name="about-uri">
             <xsl:with-param name="uri" select="$target" />
+            <xsl:with-param name="format">rdf</xsl:with-param>
           </xsl:call-template>
-          <xsl:text>/rdf</xsl:text>
         </xsl:attribute>
         RDF/XML
       </a></dd>
