@@ -1,0 +1,104 @@
+<?vsp
+declare _type, _id, uri varchar;
+_type := {?'type'};
+_id := {?'id'};
+uri := sprintf('%BASEURI%id/%S/%S', _type, _id);
+
+declare query, stylesheet varchar;
+if(_type = 'address') {
+  query := 'CONSTRUCT {
+    <URI> a locn:Address ;
+      rdfs:label ?label ;
+      locn:thoroughfare ?street ;
+      locn:locatorDesignator ?number ;
+      locn:postCode ?postcode ;
+      locn:adminUnitL2 ?municipality ;
+      locn:adminUnitL1 ?country .
+    ?org locn:address <URI> ;
+      rdfs:label ?orglabel .
+  } WHERE {
+    <URI> a locn:Address ;
+      rdfs:label ?label .
+    OPTIONAL { <URI> locn:thoroughfare ?street }
+    OPTIONAL { <URI> locn:locatorDesignator ?number }
+    OPTIONAL { <URI> locn:postCode ?postcode }
+    OPTIONAL { <URI> locn:adminUnitL2 ?municipality }
+    OPTIONAL { <URI> locn:adminUnitL1 ?country }
+    ?org locn:address <URI> ;
+      rdfs:label ?orglabel .
+  }';
+  stylesheet := 'address.xsl';
+} else if(_type = 'organization') {
+  query := 'CONSTRUCT {
+    <URI> a rov:RegisteredOrganization ;
+      rdfs:label ?label ;
+      org:identifier ?identifier ;
+      rov:orgType ?type ;
+      org:classification ?category ;
+      org:subOrganizationOf ?parent ;
+      locn:address ?address ;
+      foaf:phone ?phone .
+    ?type rdfs:label ?typelabel .
+    ?category rdfs:label ?categorylabel .
+    ?parent rdfs:label ?parentlabel .
+    ?child org:subOrganizationOf <URI> ;
+      rdfs:label ?childlabel .
+    ?address a locn:Address ;
+      rdfs:label ?addrlabel ;
+      locn:thoroughfare ?street ;
+      locn:locatorDesignator ?number ;
+      locn:postCode ?postcode ;
+      locn:adminUnitL2 ?municipality ;
+      locn:adminUnitL1 ?country .
+  } WHERE {
+    {
+      <URI> a rov:RegisteredOrganization ;
+        rdfs:label ?label ;
+        org:identifier ?identifier .
+      OPTIONAL { <URI> rov:orgType ?type .
+                 ?type rdfs:label ?typelabel . }
+      OPTIONAL { <URI> org:classification ?category .
+                 ?category rdfs:label ?categorylabel . }
+      OPTIONAL { <URI> org:subOrganizationOf ?parent .
+                 ?parent rdfs:label ?parentlabel . }
+    } UNION {
+      { SELECT * WHERE {
+          ?child org:subOrganizationOf <URI> ;
+            rdfs:label ?childlabel .
+        } LIMIT 11 }
+    } UNION {
+      { SELECT * WHERE {
+          <URI> locn:address ?address .
+          ?address a locn:Address ;
+            rdfs:label ?addrlabel .
+          OPTIONAL { ?address locn:thoroughfare ?street }
+          OPTIONAL { ?address locn:locatorDesignator ?number }
+          OPTIONAL { ?address locn:postCode ?postcode }
+          OPTIONAL { ?address locn:adminUnitL2 ?municipality }
+          OPTIONAL { ?address locn:adminUnitL1 ?country }
+        } LIMIT 11 }
+    } UNION {
+      { SELECT * WHERE {
+          <URI> foaf:phone ?phone .
+        } LIMIT 11 }
+    }
+  }';
+  stylesheet := 'organization.xsl';
+} else {
+  http_proxy('data.ydmed.gov.gr',
+             vector(sprintf('GET /about/%U HTTP/1.0', uri)),
+             null);
+  return null;
+}
+
+query := replace(query, '<URI>', sprintf('<%S>', uri));
+stylesheet := sprintf('%ROOTURI%xslt/%S', stylesheet);
+
+declare rset, triples, rawxml any;
+rset := DB.DBA.SPARQL_EVAL_TO_ARRAY(query, null, 0);
+triples := dict_list_keys (rset[0][0], 1);
+rawxml := string_output();
+DB.DBA.RDF_TRIPLES_TO_RDF_XML_TEXT(triples, 1, rawxml);
+http(string_output_string(rawxml));
+http_xslt(stylesheet);
+?>
