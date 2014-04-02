@@ -44,6 +44,7 @@
         <title><xsl:value-of select="$title" /></title>
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <link rel="stylesheet" type="text/css" href="/css/normalize.css" />
+        <link rel="stylesheet" type="text/css" href="/css/gridism.css" />
         <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600&amp;subset=latin,greek" />
         <link rel="stylesheet" type="text/css" href="/css/screen.css" />
         <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.0.min.js"></script>

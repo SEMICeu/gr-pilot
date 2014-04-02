@@ -26,6 +26,9 @@ header:after, section:after, footer:after {
   clear: both;
 }
 
+.grid .unit:first-child { padding-left: 0; }
+.grid .unit:last-child { padding-right: 0; }
+
 /* Footer */
 
 footer {
@@ -51,10 +54,20 @@ footer > :last-child {
 
 /* Inline elements */
 
+section section {
+  margin: 20px 0;
+}
+
 h2 {
   font-size: 24px;
   font-weight: 300;
   color: #213972;
+}
+
+h3 {
+  font-size: 20px;
+  font-weight: normal;
+  color: #216273;
 }
 
 a {
