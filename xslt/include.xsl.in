@@ -190,17 +190,30 @@
     </xsl:choose>
   </xsl:template>
 
-  <!-- Return URI resolved through the /about/html service if it is not one of
-  our own URIs. -->
+  <!-- Return a resolvable version of URI, without going through /about if
+  possible. -->
   <xsl:template name="resolve-uri">
     <xsl:param name="uri" />
+    <xsl:param name="format">html</xsl:param>
     <xsl:choose>
-      <xsl:when test="starts-with($uri, $baseuri)">
-        <xsl:value-of select="$uri" />
+      <xsl:when test="starts-with($uri, concat($baseuri, 'id/'))">
+        <xsl:choose>
+          <xsl:when test="$format = 'html'">
+            <xsl:value-of select="$uri" />
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="$baseuri" />
+            <xsl:text>doc</xsl:text>
+            <xsl:value-of select="substring($uri, string-length($baseuri)+3)" />
+            <xsl:text>.</xsl:text>
+            <xsl:value-of select="$format" />
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:when>
       <xsl:otherwise>
         <xsl:call-template name="about-uri">
           <xsl:with-param name="uri" select="$uri" />
+          <xsl:with-param name="format" select="$format" />
         </xsl:call-template>
       </xsl:otherwise>
     </xsl:choose>
