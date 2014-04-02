@@ -83,7 +83,7 @@ if(_type = 'address') {
       { SELECT * WHERE {
           ?child org:subOrganizationOf <URI> ;
             rdfs:label ?childlabel .
-        } LIMIT 11 }
+        } }
     } UNION {
       { SELECT * WHERE {
           <URI> locn:address ?address .
@@ -94,11 +94,11 @@ if(_type = 'address') {
           OPTIONAL { ?address locn:postCode ?postcode }
           OPTIONAL { ?address locn:adminUnitL2 ?municipality }
           OPTIONAL { ?address locn:adminUnitL1 ?country }
-        } LIMIT 11 }
+        } }
     } UNION {
       { SELECT * WHERE {
           <URI> foaf:phone ?phone .
-        } LIMIT 11 }
+        } }
     }
   }';
   stylesheet := 'organization.xsl';
