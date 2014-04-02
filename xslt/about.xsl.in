@@ -113,15 +113,27 @@
         </dd>
       </xsl:if>
       <dt>Raw data</dt>
-      <dd><a>
-        <xsl:attribute name="href">
-          <xsl:call-template name="about-uri">
-            <xsl:with-param name="uri" select="$target" />
-            <xsl:with-param name="format">rdf</xsl:with-param>
-          </xsl:call-template>
-        </xsl:attribute>
-        RDF/XML
-      </a></dd>
+      <dd>
+        <a>
+          <xsl:attribute name="href">
+            <xsl:call-template name="about-uri">
+              <xsl:with-param name="uri" select="$target" />
+              <xsl:with-param name="format">rdf</xsl:with-param>
+            </xsl:call-template>
+          </xsl:attribute>
+          RDF/XML
+        </a>
+        <xsl:text> | </xsl:text>
+        <a>
+          <xsl:attribute name="href">
+            <xsl:call-template name="about-uri">
+              <xsl:with-param name="uri" select="$target" />
+              <xsl:with-param name="format">ttl</xsl:with-param>
+            </xsl:call-template>
+          </xsl:attribute>
+          Turtle
+        </a>
+      </dd>
     </dl>
   </xsl:template>
 
