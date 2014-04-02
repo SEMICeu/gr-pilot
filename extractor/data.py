@@ -143,10 +143,10 @@ def cleanup_transparency(e):
     e.type_norm = utils.namenorm(e.type)
     e.parent_norm = utils.namenorm(e.parent_name)
     # Find additional cid based on name mapping
-    if not e.cid and e.norm in census.cid_by_norm:
-        e.cid = census.cid_by_norm[e.norm]
-    if not e.cid and e.norm in hierarchy:
-        e.cid = next(iter(hierarchy.by_norm[e.norm])).cid
+    #if not e.cid and e.norm in census.cid_by_norm:
+    #    e.cid = census.cid_by_norm[e.norm]
+    #if not e.cid and e.norm in hierarchy:
+    #    e.cid = next(iter(hierarchy.by_norm[e.norm])).cid
     # Discard any entry unknown in census
     return e.cid in census.by_cid
 
