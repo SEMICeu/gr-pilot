@@ -70,8 +70,6 @@ for vat, entries in data.transparency.by_vat.items():
         org.name.add(Literal(e.name, lang="el"))
         if e.type:
             org.type.add(orgtypes[utils.namenorm(e.type)])
-        if e.parent_vat and e.parent_vat != vat:
-            org.parent.add(organizations[e.parent_vat])
         if e.cid in data.census.by_cid:
             for ce in data.census.by_cid[e.cid]:
                 org.name.add(Literal(ce.name, lang="el"))

@@ -147,7 +147,8 @@ def cleanup_transparency(e):
         e.cid = census.cid_by_norm[e.norm]
     if not e.cid and e.norm in hierarchy:
         e.cid = next(iter(hierarchy.by_norm[e.norm])).cid
-    return True
+    # Discard any entry unknown in census
+    return e.cid in census.by_cid
 
 transparency = dataset.Dataset("transparency.csv", COLUMNS_TRANSPARENCY,
                                'pk', cleanup_transparency)
