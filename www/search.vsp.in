@@ -19,7 +19,10 @@
 -- See the Licence for the specific language governing
 -- permissions and limitations under the Licence.
 
--- Set http_charset to work around UTF-8 encoding problems.
+-- The current_charset in VSPs seems to always be ISO-8859-1. Hence, all
+-- parameters are interpreted as such. By setting http_charset, we avoid
+-- recoding them. This preserves the UTF-8 meaning of the values when passed
+-- further on in, e.g., http_proxy.
 set http_charset=current_charset();
 
 declare _q, _limit varchar;

@@ -194,6 +194,7 @@
   For use with RDF/XML source documents only. -->
   <xsl:template name="rdf-link">
     <xsl:param name="uri" />
+    <xsl:param name="strip" select="true()" /><!-- fallback to strip-uri? -->
     <xsl:variable name="label" select="//rdf:Description[@rdf:about=string($uri)]/rdfs:label" />
     <a>
       <xsl:attribute name="href">
@@ -208,7 +209,7 @@
         <xsl:otherwise>
           <xsl:call-template name="to-curie">
             <xsl:with-param name="uri" select="$uri" />
-            <xsl:with-param name="strip" select="true()" />
+            <xsl:with-param name="strip" select="$strip" />
           </xsl:call-template>
         </xsl:otherwise>
       </xsl:choose>

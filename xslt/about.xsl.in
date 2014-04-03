@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  XSLT script to show a detailed view about a particular resource
+  XSLT script to show a detailed view about a particular resource.
+  This script is used in description.vsp.
 
   Copyright 2014 European Union
 
@@ -20,53 +21,36 @@
   See the Licence for the specific language governing
   permissions and limitations under the Licence.
 
-
-  This script is meant to be applied to the results of the following SPARQL
-  query (in application/sparql-results+xml format), where <$s1> is the target
-  resource URI.
-
-  SELECT DISTINCT * WHERE {
-    {
-      <$s1> ?p ?o
-      OPTIONAL { { SELECT ?p SAMPLE(?label) AS ?plabel
-                   WHERE { ?p rdfs:label ?label } GROUP BY ?p } }
-      OPTIONAL { { SELECT ?o SAMPLE(?label) AS ?olabel
-                   WHERE { ?o rdfs:label ?label } GROUP BY ?o } }
-    } UNION {
-      ?s ?ip <$s1>
-      OPTIONAL { { SELECT ?ip SAMPLE(?label) AS ?iplabel
-                   WHERE { ?ip rdfs:label ?label } GROUP BY ?ip } }
-      OPTIONAL { { SELECT ?s SAMPLE(?label) AS ?slabel
-                   WHERE { ?s rdfs:label ?label } GROUP BY ?s } }
-    }
-    BIND(<$s1> AS ?target)
-  } ORDER BY ?ip ?p
-
 -->
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:res="http://www.w3.org/2005/sparql-results#"
-  exclude-result-prefixes="xsl res">
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:dcterms="http://purl.org/dc/terms/"
+  xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+  exclude-result-prefixes="xsl rdf rdfs dc dcterms skos">
+
+  <xsl:param name="subject-uri" />
+  <xsl:variable name="subject" select="//rdf:Description[@rdf:about=$subject-uri]" />
 
   <xsl:include href="%ROOTURI%xslt/include.xsl" />
 
   <xsl:output method="html" indent="yes" encoding="UTF-8" />
-
-  <xsl:variable name="target" select="//res:result/res:binding[@name='target'][1]" />
 
   <!--
     Main templates
   -->
 
   <!-- Root template -->
-  <xsl:template match="res:sparql">
+  <xsl:template match="rdf:RDF">
     <xsl:call-template name="html">
       <xsl:with-param name="title">
-        About: <xsl:call-template name="target-label" />
+        About: <xsl:call-template name="subject-label" />
       </xsl:with-param>
       <xsl:with-param name="body">
         <xsl:choose>
-          <xsl:when test="$target">
+          <xsl:when test="$subject">
             <xsl:call-template name="info" />
             <section>
               <h2>Properties</h2>
@@ -88,70 +72,29 @@
 
   <!-- Print the information section -->
   <xsl:template name="info">
-    <h1><xsl:call-template name="target-label" /></h1>
-    <xsl:call-template name="target-description" />
-    <dl class="properties">
-      <dt>URI</dt>
-      <dd><a href="{$target}"><xsl:value-of select="$target" /></a></dd>
-      <xsl:variable name="type" select="//res:result[res:binding[@name='p']='http://www.w3.org/1999/02/22-rdf-syntax-ns#type']" />
-      <xsl:if test="$type">
-        <xsl:variable name="type-uri" select="$type/res:binding[@name='o']" />
-        <xsl:variable name="type-label" select="$type/res:binding[@name='olabel']" />
-        <dt>Type</dt>
-        <dd>
-          <xsl:call-template name="label-or-value">
-            <xsl:with-param name="value" select="$type-uri" />
-            <xsl:with-param name="label" select="$type-label" />
-            <xsl:with-param name="strip-uri" select="true()" />
-          </xsl:call-template>
-        </dd>
-      </xsl:if>
-      <dt>Raw data</dt>
-      <dd>
-        <a>
-          <xsl:attribute name="href">
-            <xsl:call-template name="resolve-uri">
-              <xsl:with-param name="uri" select="$target" />
-              <xsl:with-param name="format">rdf</xsl:with-param>
-            </xsl:call-template>
-          </xsl:attribute>
-          RDF/XML
-        </a>
-        <xsl:text> | </xsl:text>
-        <a>
-          <xsl:attribute name="href">
-            <xsl:call-template name="resolve-uri">
-              <xsl:with-param name="uri" select="$target" />
-              <xsl:with-param name="format">ttl</xsl:with-param>
-            </xsl:call-template>
-          </xsl:attribute>
-          Turtle
-        </a>
-      </dd>
-    </dl>
+    <h1><xsl:call-template name="subject-label" /></h1>
+    <xsl:call-template name="subject-description" />
+    <xsl:call-template name="rdf-info">
+      <xsl:with-param name="subject" select="$subject" />
+    </xsl:call-template>
   </xsl:template>
 
   <!-- Print the Properties table -->
   <xsl:template name="properties">
     <table><tbody>
-      <xsl:for-each select="//res:results/res:result">
-        <xsl:if test="res:binding[@name='o']">
-          <tr>
-            <td>
-              <xsl:call-template name="label-or-value">
-                <xsl:with-param name="value" select="res:binding[@name='p']" />
-                <xsl:with-param name="label" select="res:binding[@name='plabel']" />
-                <xsl:with-param name="strip-uri" select="true()" />
-              </xsl:call-template>
-            </td>
-            <td>
-              <xsl:call-template name="label-or-value">
-                <xsl:with-param name="value" select="res:binding[@name='o']" />
-                <xsl:with-param name="label" select="res:binding[@name='olabel']" />
-              </xsl:call-template>
-            </td>
-          </tr>
-        </xsl:if>
+      <xsl:for-each select="$subject/*">
+        <tr>
+          <td>
+            <xsl:call-template name="rdf-property">
+              <xsl:with-param name="element" select="." />
+            </xsl:call-template>
+          </td>
+          <td>
+            <xsl:call-template name="rdf-value">
+              <xsl:with-param name="element" select="." />
+            </xsl:call-template>
+          </td>
+        </tr>
       </xsl:for-each>
     </tbody></table>
   </xsl:template>
@@ -159,24 +102,19 @@
   <!-- Print the Inverse Properties table -->
   <xsl:template name="inverse-properties">
     <table><tbody>
-      <xsl:for-each select="//res:results/res:result">
-        <xsl:if test="res:binding[@name='s']">
-          <tr>
-            <td>
-              <xsl:call-template name="label-or-value">
-                <xsl:with-param name="value" select="res:binding[@name='ip']" />
-                <xsl:with-param name="label" select="res:binding[@name='iplabel']" />
-                <xsl:with-param name="strip-uri" select="true()" />
-              </xsl:call-template>
-            </td>
-            <td>
-              <xsl:call-template name="label-or-value">
-                <xsl:with-param name="value" select="res:binding[@name='s']" />
-                <xsl:with-param name="label" select="res:binding[@name='slabel']" />
-              </xsl:call-template>
-            </td>
-          </tr>
-        </xsl:if>
+      <xsl:for-each select="//rdf:Description[.!=$subject]/*[@rdf:resource=$subject-uri]">
+        <tr>
+          <td>
+            <xsl:call-template name="rdf-property">
+              <xsl:with-param name="element" select="." />
+            </xsl:call-template>
+          </td>
+          <td>
+            <xsl:call-template name="rdf-value">
+              <xsl:with-param name="element" select=".." />
+            </xsl:call-template>
+          </td>
+        </tr>
       </xsl:for-each>
     </tbody></table>
   </xsl:template>
@@ -185,99 +123,65 @@
     Parts rendering
   -->
 
-  <!-- Print a description of the target -->
-  <xsl:template name="target-description">
-    <xsl:call-template name="target-description-type">
-      <xsl:with-param name="type" select="'http://www.w3.org/2000/01/rdf-schema#comment'" />
-    </xsl:call-template>
-    <xsl:call-template name="target-description-type">
-      <xsl:with-param name="type" select="'http://purl.org/dc/elements/1.1/description'" />
-    </xsl:call-template>
-    <xsl:call-template name="target-description-type">
-      <xsl:with-param name="type" select="'http://purl.org/dc/terms/description'" />
-    </xsl:call-template>
-    <xsl:call-template name="target-description-type">
-      <xsl:with-param name="type" select="'http://www.w3.org/2004/02/skos/core#definition'" />
-    </xsl:call-template>
+  <!-- Print the label of the subject, or its stripped URI if there is no label.
+  -->
+  <xsl:template name="subject-label">
+    <xsl:choose>
+      <xsl:when test="$subject/rdfs:label">
+        <xsl:value-of select="$subject/rdfs:label" />
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="strip-uri">
+          <xsl:with-param name="uri" select="$subject-uri" />
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
-  <xsl:template name="target-description-type">
-    <xsl:param name="type" />
-    <xsl:for-each select="//res:result[res:binding[@name='p'] = $type]">
+
+  <!-- Print a description of the subject -->
+  <xsl:template name="subject-description">
+    <xsl:for-each select="$subject/rdfs:comment | $subject/dc:description | $subject/dcterms:description | $subject/skos:definition">
       <p>
-        <xsl:call-template name="label-or-value">
-          <xsl:with-param name="value" select="res:binding[@name='o']" />
-          <xsl:with-param name="label" select="res:binding[@name='olabel']" />
+        <xsl:call-template name="rdf-value">
+          <xsl:with-param name="element" select="." />
         </xsl:call-template>
       </p>
     </xsl:for-each>
   </xsl:template>
 
-  <!-- Print a cell of the table, either its value or, in the case of URIs, its
-  label if it exists. -->
-  <xsl:template name="label-or-value">
-    <xsl:param name="value" /><!-- the res:binding of the value -->
-    <xsl:param name="label" /><!-- the res:binding of the label -->
+  <!-- Print the URI of the property, with link and label if possible. -->
+  <xsl:template name="rdf-property">
+    <xsl:param name="element" />
+    <xsl:param name="strip-uri" select="true()" />
+    <xsl:call-template name="rdf-link">
+      <xsl:with-param name="uri" select="concat(namespace-uri($element), local-name($element))" />
+      <xsl:with-param name="strip" select="$strip-uri" />
+    </xsl:call-template>
+  </xsl:template>
+
+  <!-- Print the value of an element, with link and label if possible. -->
+  <xsl:template name="rdf-value">
+    <xsl:param name="element" />
     <xsl:param name="strip-uri" select="false()" />
+    <xsl:variable name="uri" select="string($element/@rdf:about | $element/@rdf:resource)" />
+    <xsl:variable name="node-id" select="string($element/@rdf:nodeID)" />
     <xsl:choose>
-      <xsl:when test="$label">
-        <a>
-          <xsl:attribute name="href">
-            <xsl:call-template name="resolve-uri">
-              <xsl:with-param name="uri" select="$value" />
-            </xsl:call-template>
-          </xsl:attribute>
-          <xsl:apply-templates select="$label" />
-        </a>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:apply-templates select="$value">
-          <xsl:with-param name="strip-uri" select="$strip-uri" />
-        </xsl:apply-templates>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
-  <!-- Handle a blank node -->
-  <xsl:template match="res:bnode">
-    <xsl:text>(</xsl:text>
-    <xsl:value-of select="text()" />
-    <xsl:text>)</xsl:text>
-  </xsl:template>
-
-  <!-- Handle a URI -->
-  <xsl:template match="res:uri">
-    <xsl:param name="strip-uri" select="false()" />
-    <xsl:variable name="uri" select="text()" />
-    <a>
-      <xsl:attribute name="href">
-        <xsl:call-template name="resolve-uri">
+      <!-- URI -->
+      <xsl:when test="$uri">
+        <xsl:call-template name="rdf-link">
           <xsl:with-param name="uri" select="$uri" />
+          <xsl:with-param name="strip" select="$strip-uri" />
         </xsl:call-template>
-      </xsl:attribute>
-      <xsl:call-template name="to-curie">
-        <xsl:with-param name="uri" select="$uri" />
-        <xsl:with-param name="strip" select="$strip-uri" />
-      </xsl:call-template>
-    </a>
-  </xsl:template>
-
-  <!-- Handle a literal -->
-  <xsl:template match="res:literal">
-    <xsl:value-of select="text()" />
-  </xsl:template>
-
-  <!-- Print the label of the target, or its stripped URI if there is no label.
-  -->
-  <xsl:template name="target-label">
-    <xsl:choose>
-      <xsl:when test="//res:result/res:binding[@name = 'p'] = 'http://www.w3.org/2000/01/rdf-schema#label'">
-        <xsl:variable name="result" select="//res:result[res:binding[@name = 'p'] = 'http://www.w3.org/2000/01/rdf-schema#label']" />
-        <xsl:value-of select="$result/res:binding[@name = 'o']" />
       </xsl:when>
+      <!-- Blank node -->
+      <xsl:when test="$node-id">
+        <xsl:text>(</xsl:text>
+        <xsl:value-of select="$node-id" />
+        <xsl:text>)</xsl:text>
+      </xsl:when>
+      <!-- Literal -->
       <xsl:otherwise>
-        <xsl:call-template name="strip-uri">
-          <xsl:with-param name="uri" select="$target" />
-        </xsl:call-template>
+        <xsl:value-of select="$element" />
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>

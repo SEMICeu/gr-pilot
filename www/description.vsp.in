@@ -19,12 +19,6 @@
 -- See the Licence for the specific language governing
 -- permissions and limitations under the Licence.
 
--- The current_charset in VSPs seems to always be ISO-8859-1. Hence, all
--- parameters are interpreted as such. By setting http_charset, we avoid
--- recoding them. This preserves the UTF-8 meaning of the values when passed
--- further on in, e.g., http_proxy.
-set http_charset=current_charset();
-
 -- Read HTTP parameters
 declare _type, _id, _uri, _format, uri varchar;
 _type := get_keyword('type', params, '');
@@ -48,26 +42,39 @@ if(_format = '') {
     _format := 'rdf';
   } else if(regexp_like(accept, 'text/rdf.n3|text/rdf.turtle|text/turtle')) {
     _format := 'ttl';
+  } else {
+    _format := 'html';
   }
+} else if(_format <> 'html' and _format <> 'rdf' and _format <> 'ttl') {
+  _format := 'html';
 }
 
--- Handle raw RDF data
-if(_format = 'rdf' or _format = 'ttl') {
-  declare query, format varchar;
-  query := sprintf('DESCRIBE <%s>', _uri);
-  if(_format = 'rdf') {
-    format := 'application/rdf+xml';
-  } else if(_format = 'ttl') {
-    format := 'text/rdf+n3';
-  }
-  http_proxy('localhost',
-             vector(sprintf('GET /sparql?query=%U&format=%U HTTP/1.0', query, format)),
-             null);
-  return null;
-}
-
--- Determine query and stylesheet depending on requested type
+-- Default query
 declare query, stylesheet varchar;
+query := 'CONSTRUCT {
+  <URI> ?p ?o .
+  ?s ?p <URI> .
+  ?s rdfs:label ?slabel .
+  ?p rdfs:label ?plabel .
+  ?o rdfs:label ?olabel .
+} WHERE {
+  {
+    <URI> ?p ?o
+    OPTIONAL { { SELECT ?p SAMPLE(?label) AS ?plabel
+                 WHERE { ?p rdfs:label ?label } GROUP BY ?p } }
+    OPTIONAL { { SELECT ?o SAMPLE(?label) AS ?olabel
+                 WHERE { ?o rdfs:label ?label } GROUP BY ?o } }
+  } UNION {
+    ?s ?p <URI>
+    OPTIONAL { { SELECT ?p SAMPLE(?label) AS ?iplabel
+                 WHERE { ?p rdfs:label ?label } GROUP BY ?p } }
+    OPTIONAL { { SELECT ?s SAMPLE(?label) AS ?slabel
+                 WHERE { ?s rdfs:label ?label } GROUP BY ?s } }
+  }
+}';
+stylesheet := 'about.xsl';
+
+-- Specialized queries
 if(_type = 'address' and _id <> '') {
   query := 'CONSTRUCT {
     <URI> a locn:Address ;
@@ -147,47 +154,28 @@ if(_type = 'address' and _id <> '') {
     }
   }';
   stylesheet := 'organization.xsl';
-} else {
-  query := 'SELECT DISTINCT * WHERE {
-    {
-      <URI> ?p ?o
-      OPTIONAL { { SELECT ?p SAMPLE(?label) AS ?plabel
-                   WHERE { ?p rdfs:label ?label } GROUP BY ?p } }
-      OPTIONAL { { SELECT ?o SAMPLE(?label) AS ?olabel
-                   WHERE { ?o rdfs:label ?label } GROUP BY ?o } }
-    } UNION {
-      ?s ?ip <URI>
-      OPTIONAL { { SELECT ?ip SAMPLE(?label) AS ?iplabel
-                   WHERE { ?ip rdfs:label ?label } GROUP BY ?ip } }
-      OPTIONAL { { SELECT ?s SAMPLE(?label) AS ?slabel
-                   WHERE { ?s rdfs:label ?label } GROUP BY ?s } }
-    }
-    BIND(<URI> AS ?target)
-  } ORDER BY ?ip ?p';
-  stylesheet := 'about.xsl';
 }
 
 query := replace(query, '<URI>', sprintf('<%s>', _uri));
 stylesheet := sprintf('%ROOTURI%xslt/%s', stylesheet);
 
--- Execute the query and process it with the stylesheet.
-if(starts_with(query, 'SELECT')) {
-  -- There does not seem to be a function to get SPARQL results in XML format.
-  -- Proxy the query through the /sparql service.
-  -- Note: there is a limit on the length of the query using this method.
-  declare url varchar;
-  url := sprintf('/sparql?query=%U&format=%U&xslt-uri=%U',
-                 query,
-                 'application/sparql-results+xml',
-                 stylesheet);
-  http_proxy('localhost', vector(sprintf('GET %s HTTP/1.0', url)), null);
+-- Execute the query
+declare rset, triples, ses any;
+rset := DB.DBA.SPARQL_EVAL_TO_ARRAY(query, null, 0);
+triples := dict_list_keys (rset[0][0], 1);
+ses := string_output();
+if(_format = 'ttl') {
+  DB.DBA.RDF_TRIPLES_TO_TTL(triples, ses);
 } else {
-  declare rset, triples, rawxml any;
-  rset := DB.DBA.SPARQL_EVAL_TO_ARRAY(query, null, 0);
-  triples := dict_list_keys (rset[0][0], 1);
-  rawxml := string_output();
-  DB.DBA.RDF_TRIPLES_TO_RDF_XML_TEXT(triples, 1, rawxml);
-  http(string_output_string(rawxml));
-  http_xslt(stylesheet);
+  DB.DBA.RDF_TRIPLES_TO_RDF_XML_TEXT(triples, 1, ses);
+}
+if(_format = 'rdf') {
+  http_header('Content-type: application/rdf+xml; charset=UTF-8\r\n');
+} else if(_format = 'ttl') {
+  http_header('Content-type: text/turtle; charset=UTF-8\r\n');
+}
+http(string_output_string(ses));
+if(_format = 'html') {
+  http_xslt(stylesheet, vector('subject-uri', _uri));
 }
 ?>
