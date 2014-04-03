@@ -23,6 +23,9 @@ header, article, footer {
 }
 
 header:after, article:after, footer:after {
+  display: block;
+  content: "";
+  height: 0;
   clear: both;
 }
 
@@ -130,12 +133,21 @@ dl.properties dt {
   text-align: right;
   font-weight: 300;
 }
+
 dl.properties dt:after {
   content: ":";
 }
+
 dl.properties dd {
   margin: 0 0 0 110px;
   padding: 0 0 0.5em 0;
+}
+
+dl.properties dd:after {
+  display: block;
+  content: "";
+  height: 0;
+  clear: both;
 }
 
 /* Miscelaneous elements */
