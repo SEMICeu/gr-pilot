@@ -87,28 +87,33 @@
     <h1><xsl:value-of select="$subject/rdfs:label" /></h1>
     <div class="grid">
       <div class="unit half">
-        <dl class="properties">
-          <xsl:if test="$subject/locn:thoroughfare">
-            <dt>Street</dt>
-            <dd><xsl:value-of select="$subject/locn:thoroughfare" /></dd>
-          </xsl:if>
-          <xsl:if test="$subject/locn:locatorDesignator">
-            <dt>Number</dt>
-            <dd><xsl:value-of select="$subject/locn:locatorDesignator" /></dd>
-          </xsl:if>
-          <xsl:if test="$subject/locn:postCode">
-            <dt>Postal code</dt>
-            <dd><xsl:value-of select="$subject/locn:postCode" /></dd>
-          </xsl:if>
-          <xsl:if test="$subject/locn:adminUnitL2">
-            <dt>Municipality</dt>
-            <dd><xsl:value-of select="$subject/locn:adminUnitL2" /></dd>
-          </xsl:if>
-          <xsl:if test="$subject/locn:adminUnitL1">
-            <dt>Country</dt>
-            <dd><xsl:value-of select="$subject/locn:adminUnitL1" /></dd>
-          </xsl:if>
-        </dl>
+        <xsl:call-template name="rdf-info">
+          <xsl:with-param name="subject" select="$subject" />
+        </xsl:call-template>
+        <section>
+          <dl class="properties">
+            <xsl:if test="$subject/locn:thoroughfare">
+              <dt>Street</dt>
+              <dd><xsl:value-of select="$subject/locn:thoroughfare" /></dd>
+            </xsl:if>
+            <xsl:if test="$subject/locn:locatorDesignator">
+              <dt>Number</dt>
+              <dd><xsl:value-of select="$subject/locn:locatorDesignator" /></dd>
+            </xsl:if>
+            <xsl:if test="$subject/locn:postCode">
+              <dt>Postal code</dt>
+              <dd><xsl:value-of select="$subject/locn:postCode" /></dd>
+            </xsl:if>
+            <xsl:if test="$subject/locn:adminUnitL2">
+              <dt>Municipality</dt>
+              <dd><xsl:value-of select="$subject/locn:adminUnitL2" /></dd>
+            </xsl:if>
+            <xsl:if test="$subject/locn:adminUnitL1">
+              <dt>Country</dt>
+              <dd><xsl:value-of select="$subject/locn:adminUnitL1" /></dd>
+            </xsl:if>
+          </dl>
+        </section>
         <section>
           <h3>Located at this address</h3>
           <ul>
