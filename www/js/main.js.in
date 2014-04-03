@@ -26,32 +26,14 @@ $.fn.filterfind = function(selector) {
 
 function doSearch() {
   var query = $("#query").val();
-  var sparql = 'SELECT DISTINCT * WHERE { ?id a rov:RegisteredOrganization ; ' +
-               'rdfs:label ?label . ';
-  if(query) {
-    query = query.replace('\\', '\\\\')
-                 .replace('"', '\\"')
-                 .replace('\n', '\\n')
-                 .replace('\r', '\\r')
-                 .toLowerCase();
-    sparql += 'FILTER(CONTAINS(LCASE(STR(?label)), "' + query + '"))';
-  }
-  sparql += '}';
   $("#results")
     .empty()
-    .append('<p class="more"><a href="/sparql?' +
-            $.param({
-              'query': sparql,
-              'format': "application/sparql-results+xml",
-              'xslt-uri': "%ROOTURI%xslt/sparql-table.xsl"
-            }) +
+    .append('<p class="more"><a href="/search?' +
+            $.param({'q': query}) +
             '">See all results &raquo;</a></p>');
-  var sparql_limited = sparql + ' LIMIT 10';
-  console.log("Executing query: " + sparql_limited);
-  $.get("/sparql", {
-    'query': sparql_limited,
-    'format': "application/sparql-results+xml",
-    'xslt-uri': "%ROOTURI%xslt/sparql-table.xsl"
+  $.get("/search", {
+    'q': query,
+    'limit': 10
   }, function(data) {
     $("#results").prepend($(data).filterfind("#results").contents());
   });

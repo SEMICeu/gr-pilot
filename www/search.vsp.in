@@ -1,0 +1,33 @@
+<?vsp
+set http_charset=current_charset();
+declare _q, _limit varchar;
+_q := get_keyword('q', params, '');
+_limit := atoi(get_keyword('limit', params, '0'));
+
+declare filter, limit, query, url varchar;
+if(_q <> '') {
+  _q := replace(_q, '\\', '\\\\');
+  _q := replace(_q, '"', '\\"');
+  _q := replace(_q, '\n', '\\n');
+  _q := replace(_q, '\r', '\\r');
+  filter := sprintf('FILTER(CONTAINS(LCASE(STR(?Name)), LCASE("%s")))', _q);
+} else {
+  filter := '';
+}
+if(_limit > 0) {
+  limit := sprintf('LIMIT %d', _limit);
+} else {
+  limit := '';
+}
+query := sprintf('SELECT DISTINCT ?VAT ?Name WHERE {
+                    ?VAT a rov:RegisteredOrganization ;
+                    rdfs:label ?Name .
+                    %s
+                  } %s', filter, limit);
+url := sprintf('/sparql?query=%U&format=%U&xslt-uri=%U',
+               query,
+               'application/sparql-results+xml',
+               '%ROOTURI%xslt/sparql-table.xsl');
+
+http_proxy('localhost', vector(sprintf('GET %s HTTP/1.0', url)), null);
+?>
