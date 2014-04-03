@@ -1,9 +1,14 @@
 <?vsp
-declare _type, _id, _format, uri varchar;
+set http_charset=current_charset();
+declare _type, _id, _uri, _format, uri varchar;
 _type := get_keyword('type', params, '');
 _id := get_keyword('id', params, '');
+_uri := get_keyword('uri', params, '');
 _format := get_keyword('format', params, '');
-uri := sprintf('%BASEURI%id/%U/%U', _type, _id);
+
+if(_uri = '') {
+    _uri := sprintf('%BASEURI%id/%U/%U', _type, _id);
+}
 
 if(_format = '') {
   declare accept varchar;
@@ -16,8 +21,15 @@ if(_format = '') {
 }
 
 if(_format = 'rdf' or _format = 'ttl') {
-  http_proxy('data.ydmed.gov.gr',
-             vector(sprintf('GET /about/%s/%U HTTP/1.0', _format, uri)),
+  declare query, format varchar;
+  query := sprintf('DESCRIBE <%s>', _uri);
+  if(_format = 'rdf') {
+    format := 'application/rdf+xml';
+  } else if(_format = 'ttl') {
+    format := 'text/rdf+n3';
+  }
+  http_proxy('localhost',
+             vector(sprintf('GET /sparql?query=%U&format=%U HTTP/1.0', query, format)),
              null);
   return null;
 }
@@ -103,20 +115,42 @@ if(_type = 'address') {
   }';
   stylesheet := 'organization.xsl';
 } else {
-  http_proxy('data.ydmed.gov.gr',
-             vector(sprintf('GET /about/html/%U HTTP/1.0', uri)),
-             null);
-  return null;
+  query := 'SELECT DISTINCT * WHERE {
+    {
+      <URI> ?p ?o
+      OPTIONAL { { SELECT ?p SAMPLE(?label) AS ?plabel
+                   WHERE { ?p rdfs:label ?label } GROUP BY ?p } }
+      OPTIONAL { { SELECT ?o SAMPLE(?label) AS ?olabel
+                   WHERE { ?o rdfs:label ?label } GROUP BY ?o } }
+    } UNION {
+      ?s ?ip <URI>
+      OPTIONAL { { SELECT ?ip SAMPLE(?label) AS ?iplabel
+                   WHERE { ?ip rdfs:label ?label } GROUP BY ?ip } }
+      OPTIONAL { { SELECT ?s SAMPLE(?label) AS ?slabel
+                   WHERE { ?s rdfs:label ?label } GROUP BY ?s } }
+    }
+    BIND(<URI> AS ?target)
+  } ORDER BY ?ip ?p';
+  stylesheet := 'about.xsl';
 }
 
-query := replace(query, '<URI>', sprintf('<%s>', uri));
+query := replace(query, '<URI>', sprintf('<%s>', _uri));
 stylesheet := sprintf('%ROOTURI%xslt/%s', stylesheet);
 
-declare rset, triples, rawxml any;
-rset := DB.DBA.SPARQL_EVAL_TO_ARRAY(query, null, 0);
-triples := dict_list_keys (rset[0][0], 1);
-rawxml := string_output();
-DB.DBA.RDF_TRIPLES_TO_RDF_XML_TEXT(triples, 1, rawxml);
-http(string_output_string(rawxml));
-http_xslt(stylesheet);
+if(starts_with(query, 'SELECT')) {
+  declare url varchar;
+  url := sprintf('/sparql?query=%U&format=%U&xslt-uri=%U',
+                 query,
+                 'application/sparql-results+xml',
+                 stylesheet);
+  http_proxy('localhost', vector(sprintf('GET %s HTTP/1.0', url)), null);
+} else {
+  declare rset, triples, rawxml any;
+  rset := DB.DBA.SPARQL_EVAL_TO_ARRAY(query, null, 0);
+  triples := dict_list_keys (rset[0][0], 1);
+  rawxml := string_output();
+  DB.DBA.RDF_TRIPLES_TO_RDF_XML_TEXT(triples, 1, rawxml);
+  http(string_output_string(rawxml));
+  http_xslt(stylesheet);
+}
 ?>
