@@ -42,7 +42,7 @@ if(_limit > 0) {
   limit := '';
 }
 query := sprintf('SELECT DISTINCT ?VAT ?Name WHERE {
-                    ?VAT a rov:RegisteredOrganization ;
+                    ?VAT a org:Organization ;
                     rdfs:label ?Name .
                     %s
                   } %s', filter, limit);

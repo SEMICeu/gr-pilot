@@ -93,7 +93,7 @@ if(_type = 'address' and _id <> '') {
   stylesheet := 'address.xsl';
 } else if(_type = 'organization' and _id <> '') {
   query := 'CONSTRUCT {
-    <URI> a rov:RegisteredOrganization ;
+    <URI> a org:Organization ;
       rdfs:label ?label ;
       org:identifier ?identifier ;
       rov:orgType ?type ;
@@ -115,7 +115,7 @@ if(_type = 'address' and _id <> '') {
       locn:adminUnitL1 ?country .
   } WHERE {
     {
-      <URI> a rov:RegisteredOrganization ;
+      <URI> a org:Organization ;
         rdfs:label ?label ;
         org:identifier ?identifier .
       OPTIONAL { <URI> rov:orgType ?type .

@@ -80,7 +80,7 @@ class Address(Resource):
         Resource.__init__(self, uri)
 
 
-@resource(ROV.RegisteredOrganization, "organization")
+@resource(ORG.Organization, "organization")
 class Organization(Resource):
 
     name                = Property(RDFS.label, rng=Property.TEXT, min=1)

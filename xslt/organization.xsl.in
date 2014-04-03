@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  XSLT script to show a detailed view of a rov:RegisteredOrganization
+  XSLT script to show a detailed view of a org:Organization
 
   Copyright 2014 European Union
 
@@ -26,7 +26,7 @@
   resource URI.
 
   CONSTRUCT {
-    <$s1> a rov:RegisteredOrganization ;
+    <$s1> a org:Organization ;
       rdfs:label ?label ;
       org:identifier ?identifier ;
       rov:orgType ?type ;
@@ -48,7 +48,7 @@
       locn:adminUnitL1 ?country .
   } WHERE {
     {
-      <$s1> a rov:RegisteredOrganization ;
+      <$s1> a org:Organization ;
         rdfs:label ?label ;
         org:identifier ?identifier .
       OPTIONAL { <$s1> rov:orgType ?type .
@@ -95,7 +95,7 @@
 
   <xsl:output method="html" indent="yes" encoding="UTF-8" />
 
-  <xsl:variable name="subject" select="//rdf:Description[rdf:type[@rdf:resource = 'http://www.w3.org/ns/regorg#RegisteredOrganization']]" />
+  <xsl:variable name="subject" select="//rdf:Description[rdf:type[@rdf:resource = 'http://www.w3.org/ns/org#Organization']]" />
 
   <!-- Root template -->
   <xsl:template match="rdf:RDF">
