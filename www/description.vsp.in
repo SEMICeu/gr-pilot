@@ -34,7 +34,11 @@ _format := get_keyword('format', params, '');
 
 -- Fallbacks
 if(_uri = '') {
+  if(_id = '') {
+    _uri := sprintf('%BASEURI%id/%U', _type);
+  } else {
     _uri := sprintf('%BASEURI%id/%U/%U', _type, _id);
+  }
 }
 
 if(_format = '') {
@@ -64,7 +68,7 @@ if(_format = 'rdf' or _format = 'ttl') {
 
 -- Determine query and stylesheet depending on requested type
 declare query, stylesheet varchar;
-if(_type = 'address') {
+if(_type = 'address' and _id <> '') {
   query := 'CONSTRUCT {
     <URI> a locn:Address ;
       rdfs:label ?label ;
@@ -87,7 +91,7 @@ if(_type = 'address') {
       rdfs:label ?orglabel .
   }';
   stylesheet := 'address.xsl';
-} else if(_type = 'organization') {
+} else if(_type = 'organization' and _id <> '') {
   query := 'CONSTRUCT {
     <URI> a rov:RegisteredOrganization ;
       rdfs:label ?label ;
