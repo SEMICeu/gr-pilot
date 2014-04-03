@@ -3,7 +3,7 @@ declare _type, _id, _format, uri varchar;
 _type := get_keyword('type', params, '');
 _id := get_keyword('id', params, '');
 _format := get_keyword('format', params, '');
-uri := sprintf('%BASEURI%id/%S/%S', _type, _id);
+uri := sprintf('%BASEURI%id/%U/%U', _type, _id);
 
 if(_format = '') {
   declare accept varchar;
@@ -17,7 +17,7 @@ if(_format = '') {
 
 if(_format = 'rdf' or _format = 'ttl') {
   http_proxy('data.ydmed.gov.gr',
-             vector(sprintf('GET /about/%S/%U HTTP/1.0', _format, uri)),
+             vector(sprintf('GET /about/%s/%U HTTP/1.0', _format, uri)),
              null);
   return null;
 }
@@ -109,8 +109,8 @@ if(_type = 'address') {
   return null;
 }
 
-query := replace(query, '<URI>', sprintf('<%S>', uri));
-stylesheet := sprintf('%ROOTURI%xslt/%S', stylesheet);
+query := replace(query, '<URI>', sprintf('<%s>', uri));
+stylesheet := sprintf('%ROOTURI%xslt/%s', stylesheet);
 
 declare rset, triples, rawxml any;
 rset := DB.DBA.SPARQL_EVAL_TO_ARRAY(query, null, 0);
