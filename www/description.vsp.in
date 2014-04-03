@@ -1,11 +1,38 @@
 <?vsp
+-- /doc and /about handler script
+--
+-- Copyright 2014 PwC EU Services
+--
+-- Licensed under the EUPL, Version 1.1 or - as soon they
+-- will be approved by the European Commission - subsequent
+-- versions of the EUPL (the "Licence");
+-- You may not use this work except in compliance with the
+-- Licence.
+-- You may obtain a copy of the Licence at:
+-- http://ec.europa.eu/idabc/eupl
+--
+-- Unless required by applicable law or agreed to in
+-- writing, software distributed under the Licence is
+-- distributed on an "AS IS" basis,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+-- express or implied.
+-- See the Licence for the specific language governing
+-- permissions and limitations under the Licence.
+
+-- The current_charset in VSPs seems to always be ISO-8859-1. Hence, all
+-- parameters are interpreted as such. By setting http_charset, we avoid
+-- recoding them. This preserves the UTF-8 meaning of the values when passed
+-- further on in, e.g., http_proxy.
 set http_charset=current_charset();
+
+-- Read HTTP parameters
 declare _type, _id, _uri, _format, uri varchar;
 _type := get_keyword('type', params, '');
 _id := get_keyword('id', params, '');
 _uri := get_keyword('uri', params, '');
 _format := get_keyword('format', params, '');
 
+-- Fallbacks
 if(_uri = '') {
     _uri := sprintf('%BASEURI%id/%U/%U', _type, _id);
 }
@@ -20,6 +47,7 @@ if(_format = '') {
   }
 }
 
+-- Handle raw RDF data
 if(_format = 'rdf' or _format = 'ttl') {
   declare query, format varchar;
   query := sprintf('DESCRIBE <%s>', _uri);
@@ -34,6 +62,7 @@ if(_format = 'rdf' or _format = 'ttl') {
   return null;
 }
 
+-- Determine query and stylesheet depending on requested type
 declare query, stylesheet varchar;
 if(_type = 'address') {
   query := 'CONSTRUCT {
@@ -137,7 +166,11 @@ if(_type = 'address') {
 query := replace(query, '<URI>', sprintf('<%s>', _uri));
 stylesheet := sprintf('%ROOTURI%xslt/%s', stylesheet);
 
+-- Execute the query and process it with the stylesheet.
 if(starts_with(query, 'SELECT')) {
+  -- There does not seem to be a function to get SPARQL results in XML format.
+  -- Proxy the query through the /sparql service.
+  -- Note: there is a limit on the length of the query using this method.
   declare url varchar;
   url := sprintf('/sparql?query=%U&format=%U&xslt-uri=%U',
                  query,
