@@ -115,7 +115,7 @@
           </dl>
         </section>
         <section>
-          <h3>Located at this address</h3>
+          <h2>Located at this address</h2>
           <ul>
             <xsl:for-each select="//rdf:Description[locn:address]">
               <li>
