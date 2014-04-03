@@ -131,7 +131,7 @@
           <dd><xsl:value-of select="$subject/org:identifier" /></dd>
         </xsl:if>
         <xsl:if test="$subject/rov:orgType">
-          <dt>Organization type</dt>
+          <dt>Org. type</dt>
           <dd>
             <xsl:call-template name="rdf-link">
               <xsl:with-param name="uri" select="$subject/rov:orgType/@rdf:resource" />
