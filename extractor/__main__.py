@@ -56,54 +56,53 @@ organizations = utils.AutoDict(model.Organization)
 
 ## Extract data
 
-logging.info("Processing  organization types")
+logging.info("Processing organization types")
 for i, (norm, labels) in enumerate(sorted(data.transparency.type_by_typenorm.items())):
     # TODO: Have a better identifier for the URI
     orgtypes[norm] = model.OrganizationType(i)
     orgtypes[norm].label = Literal(next(iter(labels)), lang="el")
 
 logging.info("Processing organizations")
-for vat, entries in data.transparency.by_vat.items():
-    org = organizations[vat]
-    org.identifier = vat
+for cid, entries in data.census.by_cid.items():
+    org = organizations[cid]
     for e in entries:
         org.name.add(Literal(e.name, lang="el"))
-        if e.type:
-            org.type.add(orgtypes[utils.namenorm(e.type)])
-        if e.cid in data.census.by_cid:
-            for ce in data.census.by_cid[e.cid]:
-                org.name.add(Literal(ce.name, lang="el"))
-                addr = addresses[ce.address_id]
-                org.address.add(addr)
-                full = ""
-                if ce.street1:
-                    addr.thoroughfare.add(ce.street1)
-                    full = ce.street1
-                    if ce.number1:
-                        addr.locatorDesignator.add(ce.number1)
-                        full += " " + ce.number1
-                    full += ", "
-                addr.adminUnitL2.add(ce.municipality)
-                full += ce.municipality
-                if ce.postcode:
-                    addr.postCode.add(ce.postcode)
-                    full += " " + ce.postcode
-                addr.adminUnitL1.add(ce.country)
-                full += ", " + ce.country
-                addr.fullAddress.add(full)
-                addr.label.add(Literal(full, lang="el"))
-        if e.cid in data.hierarchy:
-            he = data.hierarchy[e.cid]
-            org.name.add(Literal(he.name, lang="el"))
-            if he.type_id:
-                org.category.add(categories[he.type_id])
-            if he.parent_cid != he.cid and he.parent_cid in data.transparency.by_cid:
-                for p in data.transparency.by_cid[he.parent_cid]:
-                    org.parent.add(organizations[p.vat])
-    if vat in data.syzefxis.by_vat:
-        for se in data.syzefxis.by_vat[vat]:
-            if se.source.startswith('00'):
-                org.phone.add(URIRef("tel:+" + se.source[2:]))
+        addr = addresses[e.address_id]
+        org.address.add(addr)
+        full = ""
+        if e.street1:
+            addr.thoroughfare.add(e.street1)
+            full = e.street1
+            if e.number1:
+                addr.locatorDesignator.add(e.number1)
+                full += " " + e.number1
+            full += ", "
+        addr.adminUnitL2.add(e.municipality)
+        full += e.municipality
+        if e.postcode:
+            addr.postCode.add(e.postcode)
+            full += " " + e.postcode
+        addr.adminUnitL1.add(e.country)
+        full += ", " + e.country
+        addr.fullAddress.add(full)
+        addr.label.add(Literal(full, lang="el"))
+    if cid in data.hierarchy:
+        he = data.hierarchy[cid]
+        org.name.add(Literal(he.name, lang="el"))
+        if he.type_id:
+            org.category.add(categories[he.type_id])
+        if he.parent_cid != he.cid and he.parent_cid in data.census.by_cid:
+            org.parent.add(organizations[he.parent_cid])
+    if cid in data.transparency.by_cid:
+        for te in data.transparency.by_cid[cid]:
+            org.name.add(Literal(te.name, lang="el"))
+            org.identifier.add(te.vat)
+            if te.type:
+                org.type.add(orgtypes[utils.namenorm(te.type)])
+            if te.vat in data.syzefxis.by_vat:
+                for se in data.syzefxis.by_vat[te.vat]:
+                    if se.source.startswith('00'):
+                        org.phone.add(URIRef("tel:+" + se.source[2:]))
 
 logging.info("Processing categories")
 for id, cat in categories.items():

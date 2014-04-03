@@ -84,7 +84,7 @@ class Address(Resource):
 class Organization(Resource):
 
     name                = Property(RDFS.label, rng=Property.TEXT, min=1)
-    identifier          = Property(ORG.identifier, rng=Literal, min=1)
+    identifier          = Property(ORG.identifier, rng=Literal)
     type                = Property(ROV.orgType, rng=OrganizationType)
     category            = Property(ORG.classification, rng=OrganizationCategory)
     parent              = Property(ORG.subOrganizationOf)
