@@ -25,7 +25,7 @@
   <p>Welcome to the Greek Open Data pilot. This site contains a hierarchy of public administrations in Greece. The hierarchy is represented with Linked Data.</p>
 
   <section id="search">
-    <h2>Search</h2>
+    <h2>Search for public agencies</h2>
 
     <div>
       <form id="searchform">
