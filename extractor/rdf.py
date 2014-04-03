@@ -21,14 +21,14 @@
 import logging
 import rdflib
 
+from . import config
+
 from rdflib import URIRef, Literal
 from rdflib.namespace import RDF, RDFS, XSD, OWL, SKOS, DCTERMS, FOAF
 
 ORG = rdflib.Namespace("http://www.w3.org/ns/org#")
 ROV = rdflib.Namespace("http://www.w3.org/ns/regorg#")
 LOCN = rdflib.Namespace("http://www.w3.org/ns/locn#")
-
-BASE_URI = "http://data.ydmed.gov.gr/id/"
 
 
 class Graph(rdflib.Graph):
@@ -207,7 +207,7 @@ class Resource:
         if not isinstance(uri, URIRef):
             if self.CONCEPT_NAME:
                 uri = self.CONCEPT_NAME + "/" + str(uri)
-            uri = URIRef(BASE_URI + str(uri))
+            uri = URIRef(config.BASE_URI + str(uri))
         self.uri = uri
         for name, prop in self.properties():
             setattr(self, name, set())
