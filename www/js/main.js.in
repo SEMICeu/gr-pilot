@@ -39,27 +39,11 @@ function doSearch() {
   });
 }
 
-function initCategories() {
-  var sparql = 'SELECT DISTINCT * WHERE { ?uri a skos:Concept ; ' +
-               'skos:topConceptOf <%BASEURI%id/category> ; ' +
-               'rdfs:label ?label . ' +
-               '} ORDER BY ?label';
-  console.log("Executing query: " + sparql);
-  $.get("/sparql", {
-    'query': sparql,
-    'format': "application/sparql-results+xml",
-    'xslt-uri': "%ROOTURI%xslt/uri-list.xsl"
-  }, function(data) {
-    $("#categories").prepend(data);
-  });
-}
-
 $(function() {
   $("#searchform").submit(function(event) {
     doSearch();
     event.preventDefault();
   });
-  initCategories();
 });
 
 /* vim:set ts=2 sw=2 et: */

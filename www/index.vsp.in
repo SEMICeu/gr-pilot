@@ -40,7 +40,15 @@
     <h2>Browse</h2>
 
     <p>To start browsing the hierarchy, choose a category:</p>
-    <div id="categories"></div>
+    <ul>
+    <?vsp for(sparql  select distinct * where {
+                        ?uri a skos:Concept ;
+                          skos:topConceptOf <%BASEURI%id/category> ;
+                          rdfs:label ?label .
+                      } ORDER BY ?label) do { ?>
+      <li><a href="<?vsp http(uri); ?>"><?= charset_recode(label, 'UTF-8', '_WIDE_') ?></a></li>
+    <?vsp } ?>
+    </ul>
   </section>
 </article>
 
