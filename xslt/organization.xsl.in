@@ -37,9 +37,7 @@
 
   <!-- Entry point -->
   <xsl:template match="rdf:RDF">
-    <xsl:call-template name="about">
-      <xsl:with-param name="leaflet" select="true()" />
-    </xsl:call-template>
+    <xsl:call-template name="about" />
   </xsl:template>
 
   <!-- Main template -->
