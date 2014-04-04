@@ -194,7 +194,7 @@
   For use with RDF/XML source documents only. -->
   <xsl:template name="rdf-link">
     <xsl:param name="uri" />
-    <xsl:variable name="label" select="//rdf:Description[@rdf:about=$uri]/rdfs:label" />
+    <xsl:variable name="label" select="//rdf:Description[@rdf:about=string($uri)]/rdfs:label" />
     <a>
       <xsl:attribute name="href">
         <xsl:call-template name="resolve-uri">
@@ -220,12 +220,12 @@
   <xsl:template name="to-curie">
     <xsl:param name="uri" />
     <xsl:param name="strip" select="false()" /><!-- fallback to strip-uri? -->
+    <xsl:variable name="ns" select="$namespaces//ns:namespace[starts-with(string($uri), string(ns:uri))]" />
     <xsl:choose>
-      <xsl:when test="$namespaces//ns:namespace[starts-with($uri, ns:uri)]">
-        <xsl:variable name="ns" select="$namespaces//ns:namespace[starts-with($uri, ns:uri)]" />
+      <xsl:when test="$ns">
         <xsl:value-of select="$ns/ns:prefix" />
         <xsl:text>:</xsl:text>
-        <xsl:value-of select="substring($uri, string-length($ns/ns:uri) + 1)" />
+        <xsl:value-of select="substring(string($uri), string-length($ns/ns:uri) + 1)" />
       </xsl:when>
       <xsl:when test="$strip">
         <xsl:call-template name="strip-uri">
@@ -233,7 +233,7 @@
         </xsl:call-template>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:value-of select="$uri" />
+        <xsl:value-of select="string($uri)" />
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -244,25 +244,25 @@
   <xsl:template name="strip-uri">
     <xsl:param name="uri" />
     <xsl:choose>
-      <xsl:when test="contains($uri, '/')">
+      <xsl:when test="contains(string($uri), '/')">
         <xsl:choose>
-          <xsl:when test="substring-after($uri, '/') = ''">
-            <xsl:value-of select="substring-before($uri, '/')" />
+          <xsl:when test="substring-after(string($uri), '/') = ''">
+            <xsl:value-of select="substring-before(string($uri), '/')" />
           </xsl:when>
           <xsl:otherwise>
             <xsl:call-template name="strip-uri">
-              <xsl:with-param name="uri" select="substring-after($uri, '/')" />
+              <xsl:with-param name="uri" select="substring-after(string($uri), '/')" />
             </xsl:call-template>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:when>
       <xsl:otherwise>
         <xsl:choose>
-          <xsl:when test="contains($uri, '#')">
-            <xsl:value-of select="substring-after($uri, '#')" />
+          <xsl:when test="contains(string($uri), '#')">
+            <xsl:value-of select="substring-after(string($uri), '#')" />
           </xsl:when>
           <xsl:otherwise>
-            <xsl:value-of select="$uri" />
+            <xsl:value-of select="string($uri)" />
           </xsl:otherwise>
         </xsl:choose>
       </xsl:otherwise>
@@ -275,15 +275,15 @@
     <xsl:param name="uri" />
     <xsl:param name="format">html</xsl:param>
     <xsl:choose>
-      <xsl:when test="starts-with($uri, concat($baseuri, 'id/'))">
+      <xsl:when test="starts-with(string($uri), concat($baseuri, 'id/'))">
         <xsl:choose>
           <xsl:when test="$format = 'html'">
-            <xsl:value-of select="$uri" />
+            <xsl:value-of select="string($uri)" />
           </xsl:when>
           <xsl:otherwise>
             <xsl:value-of select="$baseuri" />
             <xsl:text>doc</xsl:text>
-            <xsl:value-of select="substring($uri, string-length($baseuri)+3)" />
+            <xsl:value-of select="substring(string($uri), string-length($baseuri)+3)" />
             <xsl:text>.</xsl:text>
             <xsl:value-of select="$format" />
           </xsl:otherwise>
@@ -306,7 +306,7 @@
     <xsl:value-of select="$format" />
     <xsl:text>/</xsl:text>
     <xsl:call-template name="urlencode">
-      <xsl:with-param name="value" select="$uri" />
+      <xsl:with-param name="value" select="string($uri)" />
     </xsl:call-template>
   </xsl:template>
 
