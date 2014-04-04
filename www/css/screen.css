@@ -238,8 +238,9 @@ dl.properties dd:after {
 }
 
 .more {
-  text-align: right;
+  text-align: center;
   margin-top: 0;
+  font-size: small;
 }
 
 /* Responsive tweaks */
