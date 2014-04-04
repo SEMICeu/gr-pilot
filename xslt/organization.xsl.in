@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  XSLT script to show a detailed view of a org:Organization
+  XSLT script to show a detailed view of an org:Organization.
+  This script is used in description.vsp.
 
   Copyright 2014 European Union
 
@@ -20,66 +21,6 @@
   See the Licence for the specific language governing
   permissions and limitations under the Licence.
 
-
-  This script is meant to be applied to the results of the following SPARQL
-  query (in application/sparql-results+xml format), where <$s1> is the target
-  resource URI.
-
-  CONSTRUCT {
-    <$s1> a org:Organization ;
-      rdfs:label ?label ;
-      org:identifier ?identifier ;
-      rov:orgType ?type ;
-      org:classification ?category ;
-      org:subOrganizationOf ?parent ;
-      locn:address ?address ;
-      foaf:phone ?phone .
-    ?type rdfs:label ?typelabel .
-    ?category rdfs:label ?categorylabel .
-    ?parent rdfs:label ?parentlabel .
-    ?child org:subOrganizationOf <$s1> ;
-      rdfs:label ?childlabel .
-    ?address a locn:Address ;
-      rdfs:label ?addrlabel ;
-      locn:thoroughfare ?street ;
-      locn:locatorDesignator ?number ;
-      locn:postCode ?postcode ;
-      locn:adminUnitL2 ?municipality ;
-      locn:adminUnitL1 ?country .
-  } WHERE {
-    {
-      <$s1> a org:Organization ;
-        rdfs:label ?label ;
-        org:identifier ?identifier .
-      OPTIONAL { <$s1> rov:orgType ?type .
-                 ?type rdfs:label ?typelabel . }
-      OPTIONAL { <$s1> org:classification ?category .
-                 ?category rdfs:label ?categorylabel . }
-      OPTIONAL { <$s1> org:subOrganizationOf ?parent .
-                 ?parent rdfs:label ?parentlabel . }
-    } UNION {
-      { SELECT * WHERE {
-          ?child org:subOrganizationOf <$s1> ;
-            rdfs:label ?childlabel .
-        } LIMIT 11 }
-    } UNION {
-      { SELECT * WHERE {
-          <$s1> locn:address ?address .
-          ?address a locn:Address ;
-            rdfs:label ?addrlabel .
-          OPTIONAL { ?address locn:thoroughfare ?street }
-          OPTIONAL { ?address locn:locatorDesignator ?number }
-          OPTIONAL { ?address locn:postCode ?postcode }
-          OPTIONAL { ?address locn:adminUnitL2 ?municipality }
-          OPTIONAL { ?address locn:adminUnitL1 ?country }
-        } LIMIT 11 }
-    } UNION {
-      { SELECT * WHERE {
-          <$s1> foaf:phone ?phone .
-        } LIMIT 11 }
-    }
-  }
-
 -->
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -93,37 +34,17 @@
 
   <xsl:include href="%ROOTURI%xslt/include.xsl" />
 
-  <xsl:output method="html" indent="yes" encoding="UTF-8" />
-
-  <xsl:variable name="subject" select="//rdf:Description[rdf:type[@rdf:resource = 'http://www.w3.org/ns/org#Organization']]" />
-
-  <!-- Root template -->
+  <!-- Entry point -->
   <xsl:template match="rdf:RDF">
-    <xsl:call-template name="html">
-      <xsl:with-param name="title">
-        About: <xsl:value-of select="$subject/rdfs:label" />
-      </xsl:with-param>
+    <xsl:call-template name="about">
       <xsl:with-param name="leaflet" select="true()" />
-      <xsl:with-param name="body">
-        <xsl:choose>
-          <xsl:when test="$subject">
-            <xsl:call-template name="content" />
-          </xsl:when>
-          <xsl:otherwise>
-            <h1>About</h1>
-            <div class="error">The organization you are looking for was not found.</div>
-          </xsl:otherwise>
-        </xsl:choose>
-      </xsl:with-param>
     </xsl:call-template>
   </xsl:template>
 
-  <!-- Real content -->
+  <!-- Main template -->
   <xsl:template name="content">
-    <h1><xsl:value-of select="$subject/rdfs:label" /></h1>
-    <xsl:call-template name="rdf-info">
-      <xsl:with-param name="subject" select="$subject" />
-    </xsl:call-template>
+    <h1><xsl:value-of select="$subject-label" /></h1>
+    <xsl:call-template name="rdf-info" />
     <section>
       <dl class="properties">
         <xsl:if test="$subject/org:identifier">
@@ -133,16 +54,18 @@
         <xsl:if test="$subject/rov:orgType">
           <dt>Org. type</dt>
           <dd>
-            <xsl:call-template name="rdf-link">
-              <xsl:with-param name="uri" select="$subject/rov:orgType/@rdf:resource" />
+            <xsl:call-template name="rdf-value">
+              <xsl:with-param name="element" select="$subject/rov:orgType" />
+              <xsl:with-param name="strip-uri" select="true()" />
             </xsl:call-template>
           </dd>
         </xsl:if>
         <xsl:if test="$subject/org:classification">
           <dt>Category</dt>
           <dd>
-            <xsl:call-template name="rdf-link">
-              <xsl:with-param name="uri" select="$subject/org:classification/@rdf:resource" />
+            <xsl:call-template name="rdf-value">
+              <xsl:with-param name="element" select="$subject/org:classification" />
+              <xsl:with-param name="strip-uri" select="true()" />
             </xsl:call-template>
           </dd>
         </xsl:if>
@@ -154,8 +77,8 @@
         <ul>
           <xsl:for-each select="$subject/org:subOrganizationOf">
             <li>
-              <xsl:call-template name="rdf-link">
-                <xsl:with-param name="uri" select="@rdf:resource" />
+              <xsl:call-template name="rdf-value">
+                <xsl:with-param name="element" select="." />
               </xsl:call-template>
             </li>
           </xsl:for-each>
@@ -168,8 +91,8 @@
         <ul>
           <xsl:for-each select="//rdf:Description[.!=$subject][org:subOrganizationOf]">
             <li>
-              <xsl:call-template name="rdf-link">
-                <xsl:with-param name="uri" select="@rdf:about" />
+              <xsl:call-template name="rdf-value">
+                <xsl:with-param name="element" select="." />
               </xsl:call-template>
             </li>
           </xsl:for-each>
@@ -182,15 +105,15 @@
         <ul>
           <xsl:for-each select="$subject/locn:address">
             <li>
-              <xsl:call-template name="rdf-link">
-                <xsl:with-param name="uri" select="@rdf:resource" />
+              <xsl:call-template name="rdf-value">
+                <xsl:with-param name="element" select="." />
               </xsl:call-template>
             </li>
           </xsl:for-each>
         </ul>
         <div id="map">
           <xsl:for-each select="$subject/locn:address">
-            <xsl:variable name="uri" select="@rdf:resource" />
+            <xsl:variable name="uri" select="string(@rdf:resource)" />
             <xsl:call-template name="map-address">
               <xsl:with-param name="address" select="//rdf:Description[@rdf:about=$uri]" />
             </xsl:call-template>
@@ -204,7 +127,8 @@
         <ul>
           <xsl:for-each select="$subject/foaf:phone">
             <li>
-              <xsl:value-of select="substring(@rdf:resource, 5)" />
+              <!-- All phone number are <tel:+...> URIs. -->
+              <xsl:value-of select="substring(string(@rdf:resource), 5)" />
             </li>
           </xsl:for-each>
         </ul>

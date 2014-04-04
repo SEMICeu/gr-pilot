@@ -30,7 +30,24 @@
   exclude-result-prefixes="xsl ns rdf rdfs locn">
 
   <xsl:param name="baseuri" select="'%BASEURI%'" />
+  <xsl:param name="subject-uri" />
   <xsl:variable name="namespaces" select="document('%ROOTURI%xslt/namespaces.xml')" />
+
+  <xsl:variable name="subject" select="//rdf:Description[@rdf:about=$subject-uri]" />
+  <xsl:variable name="subject-label">
+    <xsl:choose>
+      <xsl:when test="$subject/rdfs:label">
+        <xsl:value-of select="string($subject/rdfs:label)" />
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="strip-uri">
+          <xsl:with-param name="uri" select="$subject-uri" />
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+
+  <xsl:output method="html" indent="yes" encoding="UTF-8" />
 
   <!-- Standard HTML boilerplate -->
   <xsl:template name="html">
@@ -111,19 +128,39 @@
     </html>
   </xsl:template>
 
-  <!-- Add a small RDF description with links to raw data.
-  For us with RDF/XML source documents only. -->
+  <!-- Standard about page boilerplate -->
+  <xsl:template name="about">
+    <xsl:param name="leaflet" select="false()" />
+    <xsl:call-template name="html">
+      <xsl:with-param name="title">
+        About: <xsl:value-of select="$subject-label" />
+      </xsl:with-param>
+      <xsl:with-param name="leaflet" select="$leaflet" />
+      <xsl:with-param name="body">
+        <xsl:choose>
+          <xsl:when test="$subject">
+            <xsl:call-template name="content" />
+          </xsl:when>
+          <xsl:otherwise>
+            <h1>About: <xsl:value-of select="$subject-label" /></h1>
+            <div class="error">Sorry, we do not know about this resource.</div>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:with-param>
+    </xsl:call-template>
+  </xsl:template>
+
+  <!-- Add a small RDF description about $subject with links to raw data. -->
   <xsl:template name="rdf-info">
-    <xsl:param name="subject" /><!-- the subject resource -->
-    <xsl:variable name="uri" select="$subject/@rdf:about" />
     <dl class="properties">
       <dt>URI</dt>
-      <dd><a href="{$uri}"><xsl:value-of select="$uri" /></a></dd>
+      <dd><a href="{$subject-uri}"><xsl:value-of select="$subject-uri" /></a></dd>
       <xsl:if test="$subject/rdf:type">
         <dt>Type</dt>
         <dd>
-          <xsl:call-template name="rdf-link">
-            <xsl:with-param name="uri" select="$subject/rdf:type/@rdf:resource" />
+          <xsl:call-template name="rdf-value">
+            <xsl:with-param name="element" select="$subject/rdf:type" />
+            <xsl:with-param name="strip-uri" select="true()" />
           </xsl:call-template>
         </dd>
       </xsl:if>
@@ -132,7 +169,7 @@
         <a>
           <xsl:attribute name="href">
             <xsl:call-template name="about-uri">
-              <xsl:with-param name="uri" select="$uri" />
+              <xsl:with-param name="uri" select="$subject-uri" />
             </xsl:call-template>
           </xsl:attribute>
           HTML
@@ -141,7 +178,7 @@
         <a>
           <xsl:attribute name="href">
             <xsl:call-template name="resolve-uri">
-              <xsl:with-param name="uri" select="$uri" />
+              <xsl:with-param name="uri" select="$subject-uri" />
               <xsl:with-param name="format">rdf</xsl:with-param>
             </xsl:call-template>
           </xsl:attribute>
@@ -151,7 +188,7 @@
         <a>
           <xsl:attribute name="href">
             <xsl:call-template name="resolve-uri">
-              <xsl:with-param name="uri" select="$uri" />
+              <xsl:with-param name="uri" select="$subject-uri" />
               <xsl:with-param name="format">ttl</xsl:with-param>
             </xsl:call-template>
           </xsl:attribute>
@@ -161,9 +198,7 @@
     </dl>
   </xsl:template>
 
-  <!-- Add a marker for the specific address to a map.
-  For use with RDF/XML source documents only.
-  -->
+  <!-- Add a marker for the specific address to a map. -->
   <xsl:template name="map-address">
     <xsl:param name="address" /><!-- the locn:Address resource -->
     <a>
@@ -190,8 +225,44 @@
     </a>
   </xsl:template>
 
-  <!-- Add a HTML link for a resource, with the rdfs:label if it exists.
-  For use with RDF/XML source documents only. -->
+  <!-- Print the URI of the property, with link and label if possible. -->
+  <xsl:template name="rdf-property">
+    <xsl:param name="element" />
+    <xsl:param name="strip-uri" select="true()" />
+    <xsl:call-template name="rdf-link">
+      <xsl:with-param name="uri" select="concat(namespace-uri($element), local-name($element))" />
+      <xsl:with-param name="strip" select="$strip-uri" />
+    </xsl:call-template>
+  </xsl:template>
+
+  <!-- Print the value of an element, with link and label if possible. -->
+  <xsl:template name="rdf-value">
+    <xsl:param name="element" />
+    <xsl:param name="strip-uri" select="false()" />
+    <xsl:variable name="uri" select="string($element/@rdf:about | $element/@rdf:resource)" />
+    <xsl:variable name="node-id" select="string($element/@rdf:nodeID)" />
+    <xsl:choose>
+      <!-- URI -->
+      <xsl:when test="$uri">
+        <xsl:call-template name="rdf-link">
+          <xsl:with-param name="uri" select="$uri" />
+          <xsl:with-param name="strip" select="$strip-uri" />
+        </xsl:call-template>
+      </xsl:when>
+      <!-- Blank node -->
+      <xsl:when test="$node-id">
+        <xsl:text>(</xsl:text>
+        <xsl:value-of select="$node-id" />
+        <xsl:text>)</xsl:text>
+      </xsl:when>
+      <!-- Literal -->
+      <xsl:otherwise>
+        <xsl:value-of select="$element" />
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- Add a HTML link for a resource, with the rdfs:label if it exists. -->
   <xsl:template name="rdf-link">
     <xsl:param name="uri" />
     <xsl:param name="strip" select="true()" /><!-- fallback to strip-uri? -->
