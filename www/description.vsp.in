@@ -50,7 +50,7 @@ if(_format = '') {
   _format := 'html';
 }
 
--- Default query
+-- Default query and stylesheet
 declare query, stylesheet varchar;
 query := 'CONSTRUCT {
   <URI> ?p ?o .
@@ -75,29 +75,8 @@ query := 'CONSTRUCT {
 }';
 stylesheet := 'about.xsl';
 
--- Specialized queries
+-- Specialized queries and/or stylesheets
 if(_type = 'address' and _id <> '') {
-  query := 'CONSTRUCT {
-    <URI> a locn:Address ;
-      rdfs:label ?label ;
-      locn:thoroughfare ?street ;
-      locn:locatorDesignator ?number ;
-      locn:postCode ?postcode ;
-      locn:adminUnitL2 ?municipality ;
-      locn:adminUnitL1 ?country .
-    ?org locn:address <URI> ;
-      rdfs:label ?orglabel .
-  } WHERE {
-    <URI> a locn:Address ;
-      rdfs:label ?label .
-    OPTIONAL { <URI> locn:thoroughfare ?street }
-    OPTIONAL { <URI> locn:locatorDesignator ?number }
-    OPTIONAL { <URI> locn:postCode ?postcode }
-    OPTIONAL { <URI> locn:adminUnitL2 ?municipality }
-    OPTIONAL { <URI> locn:adminUnitL1 ?country }
-    ?org locn:address <URI> ;
-      rdfs:label ?orglabel .
-  }';
   stylesheet := 'address.xsl';
 } else if(_type = 'organization' and _id <> '') {
   query := 'CONSTRUCT {
