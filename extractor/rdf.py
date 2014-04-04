@@ -62,19 +62,6 @@ class Graph(rdflib.Graph):
             for it in item:
                 self.add(it, memo)
 
-    def query(self, *args, **kwargs):
-        result = super().query(*args, **kwargs)
-        if result.graph is not None:
-            g = Graph()
-            g += result.graph
-            result.graph = g
-        return result
-
-    def update(self, query):
-        query = "".join("PREFIX " + name + ": <" + str(uri) + ">\n"
-                        for name, uri in self.namespaces()) + query
-        super().update(query)
-
 
 class Property:
 
@@ -92,9 +79,6 @@ class Property:
 
     # Range of Literals with mandatory language tags
     TEXT = "text"
-
-    # Range of Literals with mandatory unique language tags
-    UNIQUETEXT = "unique text"
 
     def __init__(self, uri, rng=None, min=0, max=None):
         assert isinstance(uri, URIRef)
@@ -155,7 +139,7 @@ class Property:
                     ranges = (ranges,)
                 obj = self._to_rdf(value)
                 for rng in ranges:
-                    if rng in (Property.TEXT, Property.UNIQUETEXT):
+                    if rng == Property.TEXT:
                         if isinstance(obj, Literal) and obj.language is not None:
                             break
                     elif isinstance(rng, rdflib.Namespace):
@@ -173,20 +157,6 @@ class Property:
                 else:
                     result.add(self, "Wrong type", resource,
                                obj.n3(), self.rng)
-        # Check for unique language tags
-        if self.rng == Property.UNIQUETEXT:
-            languages = set()
-            reported = False
-            for value in values:
-                if isinstance(value, Literal) and value.language is not None:
-                    if not reported and value.language in languages:
-                        result.add(self, "Multiple values for a language",
-                                   resource, value.n3())
-                        reported = True
-                    languages.add(value.language)
-            if languages and "en" not in languages:
-                result.add(self, "Missing English translation", resource,
-                           "/".join(languages))
         return result
 
     def _add_to_graph(self, resource, g, memo):

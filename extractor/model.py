@@ -25,7 +25,7 @@ from .rdf import *
 @resource(SKOS.ConceptScheme)
 class ConceptScheme(Resource):
 
-    name                = Property(RDFS.label, rng=Property.UNIQUETEXT, min=1)
+    name                = Property(RDFS.label, rng=Property.TEXT, min=1)
     topConcept          = Property(SKOS.hasTopConcept, rng=URIRef)
 
     def __init__(self, uri):
@@ -42,7 +42,7 @@ ORGANIZATION_CATEGORIES.name = Literal("Organization categories", lang="en")
 @resource(SKOS.Concept, "type")
 class OrganizationType(Resource):
 
-    label               = Property(RDFS.label, rng=Property.UNIQUETEXT, min=1, max=1)
+    label               = Property(RDFS.label, rng=Property.TEXT, min=1, max=1)
     scheme              = Property(SKOS.topConceptOf, rng=ConceptScheme, min=1, max=1)
 
     def __init__(self, uri):
@@ -53,7 +53,7 @@ class OrganizationType(Resource):
 @resource(SKOS.Concept, "category")
 class OrganizationCategory(Resource):
 
-    label               = Property(RDFS.label, rng=Property.UNIQUETEXT, min=1, max=1)
+    label               = Property(RDFS.label, rng=Property.TEXT, min=1, max=1)
     scheme              = Property(SKOS.topConceptOf, rng=ConceptScheme, min=1, max=1)
 
     def __init__(self, uri):
