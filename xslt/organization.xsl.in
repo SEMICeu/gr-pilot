@@ -78,7 +78,7 @@
   <!-- General information -->
   <xsl:template name="info">
     <xsl:call-template name="rdf-info" />
-    <section>
+    <section id="info">
       <dl class="properties">
         <xsl:if test="$subject/org:identifier">
           <dt>VAT number</dt>
@@ -109,25 +109,27 @@
   <!-- Hierarchy -->
   <xsl:template name="hierarchy">
     <xsl:variable name="parent" select="$subject/org:subOrganizationOf" />
-    <ul class="hierarchy">
-      <xsl:choose>
-        <xsl:when test="boolean($parent)">
-          <li>
-            <div class="item">
-              <xsl:call-template name="rdf-value">
-                <xsl:with-param name="element" select="$parent" />
-              </xsl:call-template>
-            </div>
-            <ul>
-              <xsl:call-template name="hierarchy-self-and-children" />
-            </ul>
-          </li>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:call-template name="hierarchy-self-and-children" />
-        </xsl:otherwise>
-      </xsl:choose>
-    </ul>
+    <section id="hierarchy">
+      <ul class="hierarchy">
+        <xsl:choose>
+          <xsl:when test="boolean($parent)">
+            <li>
+              <div class="item">
+                <xsl:call-template name="rdf-value">
+                  <xsl:with-param name="element" select="$parent" />
+                </xsl:call-template>
+              </div>
+              <ul>
+                <xsl:call-template name="hierarchy-self-and-children" />
+              </ul>
+            </li>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:call-template name="hierarchy-self-and-children" />
+          </xsl:otherwise>
+        </xsl:choose>
+      </ul>
+    </section>
   </xsl:template>
   <xsl:template name="hierarchy-self-and-children">
     <xsl:variable name="children" select="//rdf:Description[.!=$subject][org:subOrganizationOf]" />
@@ -154,8 +156,8 @@
   <!-- Contact information (address, phone number) -->
   <xsl:template name="contact">
     <xsl:if test="boolean($subject/locn:address)">
-      <section id="addresses">
-        <h2>Addresses</h2>
+      <section id="locations">
+        <h2>Locations</h2>
         <ul>
           <xsl:for-each select="$subject/locn:address">
             <li>
@@ -168,7 +170,7 @@
       </section>
     </xsl:if>
     <xsl:if test="boolean($subject/foaf:phone)">
-      <section id="phone">
+      <section id="phones">
         <h2>Phone numbers</h2>
         <ul>
           <xsl:for-each select="$subject/foaf:phone">
@@ -184,14 +186,17 @@
 
   <!-- Map of addresses -->
   <xsl:template name="map">
-    <div id="map">
-      <xsl:for-each select="$subject/locn:address">
-        <xsl:variable name="uri" select="string(@rdf:resource)" />
-        <xsl:call-template name="map-address">
-          <xsl:with-param name="address" select="//rdf:Description[@rdf:about=$uri]" />
-        </xsl:call-template>
-      </xsl:for-each>
-    </div>
+    <section>
+      <h2>Map</h2>
+      <div id="map">
+        <xsl:for-each select="$subject/locn:address">
+          <xsl:variable name="uri" select="string(@rdf:resource)" />
+          <xsl:call-template name="map-address">
+            <xsl:with-param name="address" select="//rdf:Description[@rdf:about=$uri]" />
+          </xsl:call-template>
+        </xsl:for-each>
+      </div>
+    </section>
   </xsl:template>
 
 </xsl:stylesheet>
