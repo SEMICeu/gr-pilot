@@ -86,11 +86,11 @@ function makeCollapsable() {
     var toggle = $('<a href="#">Show more</a>');
     toggle.click(function(event) {
       if(collapsed) {
-        extrachildren.slideDown();
+        extrachildren.show();
         toggle.text("Show less");
         collapsed = false;
       } else {
-        extrachildren.slideUp();
+        extrachildren.hide();
         toggle.text("Show more");
         collapsed = true;
       }
