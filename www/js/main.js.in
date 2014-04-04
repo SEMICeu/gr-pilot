@@ -75,6 +75,31 @@ function initMap() {
   });
 }
 
+// Make the list $(this) collapsable
+function makeCollapsable() {
+  var ul = $(this);
+  var count = parseInt(ul.attr("count"));
+  if(ul.children("li").length > count) {
+    var extrachildren = ul.children("li:gt(" + (count-1) + ")");
+    extrachildren.hide();
+    var collapsed = true;
+    var toggle = $('<a href="#">Show more</a>');
+    toggle.click(function(event) {
+      if(collapsed) {
+        extrachildren.slideDown();
+        toggle.text("Show less");
+        collapsed = false;
+      } else {
+        extrachildren.slideUp();
+        toggle.text("Show more");
+        collapsed = true;
+      }
+      event.preventDefault();
+    });
+    $('<p class="more"></p>').append(toggle).insertAfter(ul);
+  }
+}
+
 // Initializations
 $(function() {
   // Front page events
@@ -87,6 +112,9 @@ $(function() {
   if($("#map").length > 0) {
     initMap();
   }
+
+  // Collapsables
+  $("ul.collapsable").each(makeCollapsable);
 });
 
 /* vim:set ts=2 sw=2 et: */

@@ -69,7 +69,7 @@
         </section>
         <section>
           <h2>Located at this address</h2>
-          <ul>
+          <ul class="collapsable" count="10">
             <xsl:for-each select="//rdf:Description[locn:address]">
               <li>
                 <xsl:call-template name="rdf-value">

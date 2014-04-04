@@ -138,7 +138,7 @@
         <xsl:value-of select="$subject-label" />
       </div>
       <xsl:if test="boolean($children)">
-        <ul>
+        <ul class="collapsable" count="5">
           <xsl:for-each select="$children">
             <li>
               <div class="item">
@@ -158,7 +158,7 @@
     <xsl:if test="boolean($subject/locn:address)">
       <section id="locations">
         <h2>Locations</h2>
-        <ul>
+        <ul class="collapsable" count="10">
           <xsl:for-each select="$subject/locn:address">
             <li>
               <xsl:call-template name="rdf-value">
@@ -172,7 +172,7 @@
     <xsl:if test="boolean($subject/foaf:phone)">
       <section id="phones">
         <h2>Phone numbers</h2>
-        <ul>
+        <ul class="collapsable" count="10">
           <xsl:for-each select="$subject/foaf:phone">
             <li>
               <!-- All phone number are <tel:+...> URIs. -->
