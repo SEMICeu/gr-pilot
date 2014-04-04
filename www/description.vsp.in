@@ -104,7 +104,7 @@ if(_type = 'address' and _id <> '') {
     {
       <URI> a org:Organization ;
         rdfs:label ?label .
-      OPTIONAL { <URL> org:identifier ?identifier . }
+      OPTIONAL { <URI> org:identifier ?identifier . }
       OPTIONAL { <URI> rov:orgType ?type .
                  ?type rdfs:label ?typelabel . }
       OPTIONAL { <URI> org:classification ?category .
