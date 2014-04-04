@@ -70,7 +70,7 @@
 
   <!-- Print the Properties table -->
   <xsl:template name="properties">
-    <table><tbody>
+    <table class="results"><tbody>
       <xsl:for-each select="$subject/*">
         <tr>
           <td>
@@ -90,7 +90,7 @@
 
   <!-- Print the Inverse Properties table -->
   <xsl:template name="inverse-properties">
-    <table><tbody>
+    <table class="results"><tbody>
       <xsl:for-each select="//rdf:Description[.!=$subject]/*[@rdf:resource=$subject-uri]">
         <tr>
           <td>

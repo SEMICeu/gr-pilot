@@ -114,25 +114,25 @@ figure {
 
 /* Tables */
 
-table {
+table.results {
   border-collapse: collapse;
   width: 100%;
   margin: .5em 0;
   border: 1px solid #0F5494;
 }
 
-tr {
+table.results tr {
   vertical-align: top;
 }
-tr:nth-child(even) {
+table.results tr:nth-child(even) {
   background-color: #eeeeec;
 }
 
-th, td {
+table.results th, .results td {
   padding: 2px 1em;
 }
 
-th {
+table.results th {
   text-align: left;
   white-space: nowrap;
   font-weight: 600;
@@ -140,8 +140,8 @@ th {
   color: white;
 }
 
-table ol,
-table ul {
+table.results ol,
+table.results ul {
   margin: 0;
   padding-left: 1em;
 }

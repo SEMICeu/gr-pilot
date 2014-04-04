@@ -58,7 +58,7 @@
   <h1>Results for ‘<?= keyword ?>’</h1>
   <p><a href="/">« Return to the homepage</a></p>
   <div id="results">
-    <table>
+    <table class="results">
       <thead>
         <tr>
           <th>Agency</th>
