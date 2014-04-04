@@ -1,59 +1,124 @@
+<!DOCTYPE html>
+<html>
 <?vsp
--- /search handler script
---
--- Copyright 2014 European Union
--- Author: Vianney le Clément de Saint-Marcq (PwC EU Services)
---
--- Licensed under the EUPL, Version 1.1 or - as soon they
--- will be approved by the European Commission - subsequent
--- versions of the EUPL (the "Licence");
--- You may not use this work except in compliance with the
--- Licence.
--- You may obtain a copy of the Licence at:
--- http://ec.europa.eu/idabc/eupl
---
--- Unless required by applicable law or agreed to in
--- writing, software distributed under the Licence is
--- distributed on an "AS IS" basis,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
--- express or implied.
--- See the Licence for the specific language governing
--- permissions and limitations under the Licence.
+  declare _q, _limit varchar;
+  _q := get_keyword('q', params, '');
+  _limit := atoi(get_keyword('limit', params, '0'));
 
--- The current_charset in VSPs seems to always be ISO-8859-1. Hence, all
--- parameters are interpreted as such. By setting http_charset, we avoid
--- recoding them. This preserves the UTF-8 meaning of the values when passed
--- further on in, e.g., http_proxy.
-set http_charset=current_charset();
+  -- Note: VSPs seem to always run with charset ISO-8859-1. Hence, while every
+  -- value is encoded in UTF-8, they are interpreted as latin1. This is not a
+  -- problem for most operations as the VSP does not need to understand the
+  -- content (as long as we do not perform operations like lowercasing).
+  -- However, when calling functions such as http_value, the correct encoding
+  -- must be used. We work around this by converting strings to wide strings
+  -- (nvarchar), while forcing the source encoding to UTF-8.
+  declare keyword varchar;
+  keyword := charset_recode(_q, 'UTF-8', '_WIDE_');
 
-declare _q, _limit varchar;
-_q := get_keyword('q', params, '');
-_limit := atoi(get_keyword('limit', params, '0'));
+  declare filter, query varchar;
+  if(_q <> '') {
+    _q := replace(_q, '\\', '\\\\');
+    _q := replace(_q, '"', '\\"');
+    _q := replace(_q, '\n', '\\n');
+    _q := replace(_q, '\r', '\\r');
+    filter := sprintf('FILTER(CONTAINS(LCASE(STR(?name)), LCASE("%s")))', _q);
+  } else {
+    filter := '';
+  }
+  query := sprintf('SELECT DISTINCT ?uri ?name WHERE {
+                      ?uri a org:Organization ;
+                        rdfs:label ?name .
+                      %s
+                    }', filter);
 
-declare filter, limit, query, url varchar;
-if(_q <> '') {
-  _q := replace(_q, '\\', '\\\\');
-  _q := replace(_q, '"', '\\"');
-  _q := replace(_q, '\n', '\\n');
-  _q := replace(_q, '\r', '\\r');
-  filter := sprintf('FILTER(CONTAINS(LCASE(STR(?Name)), LCASE("%s")))', _q);
-} else {
-  filter := '';
-}
-if(_limit > 0) {
-  limit := sprintf('LIMIT %d', _limit);
-} else {
-  limit := '';
-}
-query := sprintf('SELECT DISTINCT ?VAT ?Name WHERE {
-                    ?VAT a org:Organization ;
-                    rdfs:label ?Name .
-                    %s
-                  } %s', filter, limit);
-url := sprintf('/sparql?query=%U&format=%U&xslt-uri=%U',
-               query,
-               'application/sparql-results+xml',
-               '%ROOTURI%xslt/sparql-table.xsl');
-
-http_proxy('localhost', vector(sprintf('GET %s HTTP/1.0', url)), null);
+  declare rset any;
+  rset := DB.DBA.SPARQL_EVAL_TO_ARRAY(query, null, _limit);
 ?>
+<head>
+  <meta charset="UTF-8" />
+  <title>Search: <?= keyword ?></title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" type="text/css" href="/css/normalize.css" />
+  <link rel="stylesheet" type="text/css" href="/css/gridism.css" />
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600&amp;subset=latin,greek" />
+  <link rel="stylesheet" type="text/css" href="/css/screen.css" />
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+</head>
+<body>
+
+<div class="wrapper">
+
+<header>
+  <a href="/">
+    <img src="/images/logo.png" alt="Υπουργείο Διοικητικής Μεταρρύθμισης και Ηλεκτρονικής Διακυβέρνησης" height="70" width="370" />
+  </a>
+</header>
+
+<article>
+  <h1>Results for ‘<?= keyword ?>’</h1>
+  <p><a href="/">« Return to the homepage</a></p>
+  <div id="results">
+    <table>
+      <thead>
+        <tr>
+          <th>Agency</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?vsp foreach(any row in rset) do { ?>
+          <tr><td>
+            <a href="<?= row[0] ?>">
+              <?= charset_recode(row[1], 'UTF-8', '_WIDE_') ?>
+            </a>
+          </td></tr>
+        <?vsp } ?>
+      </tbody>
+    </table>
+  </div>
+</article>
+
+<footer>
+  <p>Work in progress.</p>
+
+  <p>This work is supported by
+  <a href="http://ec.europa.eu/isa/actions/01-trusted-information-exchange/1-1action_en.htm" target="_blank">Action 1.1</a>
+  of the
+  <a href="http://ec.europa.eu/isa/" target="_blank">Interoperability Solutions
+  for European Public Adminstrations (ISA)</a> Programme of the European
+  Commission.</p>
+
+  <p><strong>Linked Data pilots: </strong>
+    <a href="http://location.testproject.eu/BEL">Core Location pilot</a> |
+    <a href="http://cpsv.testproject.eu/CPSV">Core Public Service pilot</a> |
+    <a href="http://org.testproject.eu/MAREG">Organisation Ontology pilot</a> |
+    <a href="http://health.testproject.eu/PPP">Plant Protection Products pilot</a> |
+    <a href="http://maritime.testproject.eu/CISE">Maritime Surveillance pilot</a>
+  </p>
+
+  <p>
+    <a href="https://joinup.ec.europa.eu/asset/dcat_application_profile/description" target="_blank"><img alt="DCAT application profile for European data portals" src="https://joinup.ec.europa.eu/sites/default/files/imagecache/community_logo/DCAT_application_profile_for_European_data_portals_logo_0.png" width="70" height="70" /></a>
+    <a href="https://joinup.ec.europa.eu/asset/adms/description" target="_blank"><img alt="Asset Description Metadata Schema (ADMS)" src="http://joinup.ec.europa.eu/sites/default/files/imagecache/community_logo/adms_logo.png" width="70" height="70" /></a>
+    <a href="https://joinup.ec.europa.eu/asset/adms_foss/description" target="_blank"><img alt="Asset Description Metadata Schema for Software (ADMS.SW)" src="http://joinup.ec.europa.eu/sites/default/files/imagecache/community_logo/ADMS_SW_Logo.png" width="70" height="70" /></a>
+    <a href="https://joinup.ec.europa.eu/asset/core_business/description" target="_blank"><img alt="Core Business Vocabulary" src="http://joinup.ec.europa.eu/sites/default/files/imagecache/community_logo/core_business_logo.png" width="70" height="70" /></a>
+    <a href="https://joinup.ec.europa.eu/asset/core_person/description"><img alt="Core Person Vocabulary" src="http://joinup.ec.europa.eu/sites/default/files/imagecache/community_logo/core_person_logo.png" width="70" height="70" /></a>
+    <a href="https://joinup.ec.europa.eu/asset/core_location/description" target="_blank"><img alt="Core Location Vocabulary" src="http://joinup.ec.europa.eu/sites/default/files/imagecache/community_logo/core_location_logo.png" width="70" height="70" /></a>
+    <a href="https://joinup.ec.europa.eu/asset/core_public_service/description" target="_blank"><img alt="Core Public Service Vocabulary" src="https://joinup.ec.europa.eu/sites/default/files/imagecache/community_logo/core_public_service_logo.png" width="70" height="70" /></a>
+    <a href="http://ec.europa.eu/isa/" target="_blank"><img alt="isa" src="http://joinup.ec.europa.eu/sites/default/files/ckeditor_files/images/isa_logo.png" width="70" height="70" /></a>
+  </p>
+</footer>
+
+</div>
+
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', '%GOOGLE_ANALYTICS%']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+</body>
+</html>
