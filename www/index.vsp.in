@@ -51,7 +51,7 @@
 
     <div>
       <form id="searchform">
-        <input id="query" type="text" />
+        <input id="query" type="text" value="ΠΕΡΙΦΕΡΕΙΑ ΔΥΤΙΚΗΣ" />
         <input type="submit" value="Search" />
       </form>
     </div>
