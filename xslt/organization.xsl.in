@@ -43,61 +43,21 @@
   <!-- Main template -->
   <xsl:template name="content">
     <h1><xsl:value-of select="$subject-label" /></h1>
-    <xsl:call-template name="rdf-info" />
-    <section>
-      <dl class="properties">
-        <xsl:if test="$subject/org:identifier">
-          <dt>VAT number</dt>
-          <dd><xsl:value-of select="$subject/org:identifier" /></dd>
-        </xsl:if>
-        <xsl:if test="$subject/rov:orgType">
-          <dt>Org. type</dt>
-          <dd>
-            <xsl:call-template name="rdf-value">
-              <xsl:with-param name="element" select="$subject/rov:orgType" />
-              <xsl:with-param name="strip-uri" select="true()" />
-            </xsl:call-template>
-          </dd>
-        </xsl:if>
-        <xsl:if test="$subject/org:classification">
-          <dt>Category</dt>
-          <dd>
-            <xsl:call-template name="rdf-value">
-              <xsl:with-param name="element" select="$subject/org:classification" />
-              <xsl:with-param name="strip-uri" select="true()" />
-            </xsl:call-template>
-          </dd>
-        </xsl:if>
-      </dl>
-    </section>
-    <xsl:if test="$subject/org:subOrganizationOf">
-      <section id="parents">
-        <h2>Parent organizations</h2>
-        <ul>
-          <xsl:for-each select="$subject/org:subOrganizationOf">
-            <li>
-              <xsl:call-template name="rdf-value">
-                <xsl:with-param name="element" select="." />
-              </xsl:call-template>
-            </li>
-          </xsl:for-each>
-        </ul>
-      </section>
-    </xsl:if>
-    <xsl:if test="//rdf:Description[.!=$subject]/org:subOrganizationOf">
-      <section id="children">
-        <h2>Child organizations</h2>
-        <ul>
-          <xsl:for-each select="//rdf:Description[.!=$subject][org:subOrganizationOf]">
-            <li>
-              <xsl:call-template name="rdf-value">
-                <xsl:with-param name="element" select="." />
-              </xsl:call-template>
-            </li>
-          </xsl:for-each>
-        </ul>
-      </section>
-    </xsl:if>
+    <xsl:choose>
+      <xsl:when test="//org:subOrganizationOf">
+        <div class="grid">
+          <div class="unit half">
+            <xsl:call-template name="info" />
+          </div>
+          <div class="unit half">
+            <xsl:call-template name="hierarchy" />
+          </div>
+        </div>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="info" />
+      </xsl:otherwise>
+    </xsl:choose>
     <xsl:if test="$subject/locn:address">
       <section id="addresses">
         <h2>Addresses</h2>
@@ -133,6 +93,82 @@
         </ul>
       </section>
     </xsl:if>
+  </xsl:template>
+
+  <!-- General information -->
+  <xsl:template name="info">
+    <xsl:call-template name="rdf-info" />
+    <section>
+      <dl class="properties">
+        <xsl:if test="$subject/org:identifier">
+          <dt>VAT number</dt>
+          <dd><xsl:value-of select="$subject/org:identifier" /></dd>
+        </xsl:if>
+        <xsl:if test="$subject/rov:orgType">
+          <dt>Org. type</dt>
+          <dd>
+            <xsl:call-template name="rdf-value">
+              <xsl:with-param name="element" select="$subject/rov:orgType" />
+              <xsl:with-param name="strip-uri" select="true()" />
+            </xsl:call-template>
+          </dd>
+        </xsl:if>
+        <xsl:if test="$subject/org:classification">
+          <dt>Category</dt>
+          <dd>
+            <xsl:call-template name="rdf-value">
+              <xsl:with-param name="element" select="$subject/org:classification" />
+              <xsl:with-param name="strip-uri" select="true()" />
+            </xsl:call-template>
+          </dd>
+        </xsl:if>
+      </dl>
+    </section>
+  </xsl:template>
+
+  <!-- Hierarchy -->
+  <xsl:template name="hierarchy">
+    <xsl:variable name="parent" select="$subject/org:subOrganizationOf" />
+    <ul class="hierarchy">
+      <xsl:choose>
+        <xsl:when test="boolean($parent)">
+          <li>
+            <div class="item">
+              <xsl:call-template name="rdf-value">
+                <xsl:with-param name="element" select="$parent" />
+              </xsl:call-template>
+            </div>
+            <ul>
+              <xsl:call-template name="hierarchy-self-and-children" />
+            </ul>
+          </li>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="hierarchy-self-and-children" />
+        </xsl:otherwise>
+      </xsl:choose>
+    </ul>
+  </xsl:template>
+  <xsl:template name="hierarchy-self-and-children">
+    <xsl:variable name="children" select="//rdf:Description[.!=$subject][org:subOrganizationOf]" />
+    <li>
+      <div class="item current">
+        <xsl:value-of select="$subject-label" />
+      </div>
+      <xsl:if test="boolean($children)">
+        <ul>
+          <xsl:for-each select="$children">
+            <li>
+              <div class="item">
+                <xsl:call-template name="rdf-value">
+                  <xsl:with-param name="element" select="." />
+                </xsl:call-template>
+              </div>
+            </li>
+          </xsl:for-each>
+        </ul>
+      </xsl:if>
+    </li>
   </xsl:template>
 
 </xsl:stylesheet>
