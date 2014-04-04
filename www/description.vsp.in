@@ -80,19 +80,11 @@ if(_type = 'address' and _id <> '') {
   stylesheet := 'address.xsl';
 } else if(_type = 'organization' and _id <> '') {
   query := 'CONSTRUCT {
-    <URI> a org:Organization ;
-      rdfs:label ?label ;
-      org:identifier ?identifier ;
-      rov:orgType ?type ;
-      org:classification ?category ;
-      org:subOrganizationOf ?parent ;
-      locn:address ?address ;
-      foaf:phone ?phone .
-    ?type rdfs:label ?typelabel .
-    ?category rdfs:label ?categorylabel .
-    ?parent rdfs:label ?parentlabel .
-    ?child org:subOrganizationOf <URI> ;
-      rdfs:label ?childlabel .
+    <URI> ?p ?o .
+    ?s ?p <URI> .
+    ?s rdfs:label ?slabel .
+    ?p rdfs:label ?plabel .
+    ?o rdfs:label ?olabel .
     ?address a locn:Address ;
       rdfs:label ?addrlabel ;
       locn:thoroughfare ?street ;
@@ -102,35 +94,26 @@ if(_type = 'address' and _id <> '') {
       locn:adminUnitL1 ?country .
   } WHERE {
     {
-      <URI> a org:Organization ;
-        rdfs:label ?label .
-      OPTIONAL { <URI> org:identifier ?identifier . }
-      OPTIONAL { <URI> rov:orgType ?type .
-                 ?type rdfs:label ?typelabel . }
-      OPTIONAL { <URI> org:classification ?category .
-                 ?category rdfs:label ?categorylabel . }
-      OPTIONAL { <URI> org:subOrganizationOf ?parent .
-                 ?parent rdfs:label ?parentlabel . }
+      <URI> ?p ?o
+      OPTIONAL { { SELECT ?p SAMPLE(?label) AS ?plabel
+                   WHERE { ?p rdfs:label ?label } GROUP BY ?p } }
+      OPTIONAL { { SELECT ?o SAMPLE(?label) AS ?olabel
+                   WHERE { ?o rdfs:label ?label } GROUP BY ?o } }
     } UNION {
-      { SELECT * WHERE {
-          ?child org:subOrganizationOf <URI> ;
-            rdfs:label ?childlabel .
-        } }
+      ?s ?p <URI>
+      OPTIONAL { { SELECT ?p SAMPLE(?label) AS ?iplabel
+                   WHERE { ?p rdfs:label ?label } GROUP BY ?p } }
+      OPTIONAL { { SELECT ?s SAMPLE(?label) AS ?slabel
+                   WHERE { ?s rdfs:label ?label } GROUP BY ?s } }
     } UNION {
-      { SELECT * WHERE {
-          <URI> locn:address ?address .
-          ?address a locn:Address ;
-            rdfs:label ?addrlabel .
-          OPTIONAL { ?address locn:thoroughfare ?street }
-          OPTIONAL { ?address locn:locatorDesignator ?number }
-          OPTIONAL { ?address locn:postCode ?postcode }
-          OPTIONAL { ?address locn:adminUnitL2 ?municipality }
-          OPTIONAL { ?address locn:adminUnitL1 ?country }
-        } }
-    } UNION {
-      { SELECT * WHERE {
-          <URI> foaf:phone ?phone .
-        } }
+      <URI> locn:address ?address .
+      ?address a locn:Address ;
+        rdfs:label ?addrlabel .
+      OPTIONAL { ?address locn:thoroughfare ?street }
+      OPTIONAL { ?address locn:locatorDesignator ?number }
+      OPTIONAL { ?address locn:postCode ?postcode }
+      OPTIONAL { ?address locn:adminUnitL2 ?municipality }
+      OPTIONAL { ?address locn:adminUnitL1 ?country }
     }
   }';
   stylesheet := 'organization.xsl';
