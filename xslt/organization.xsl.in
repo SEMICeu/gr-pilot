@@ -44,7 +44,7 @@
   <xsl:template name="content">
     <h1><xsl:value-of select="$subject-label" /></h1>
     <xsl:choose>
-      <xsl:when test="//org:subOrganizationOf">
+      <xsl:when test="boolean(//org:subOrganizationOf)">
         <div class="grid">
           <div class="unit half">
             <xsl:call-template name="info" />
@@ -58,41 +58,21 @@
         <xsl:call-template name="info" />
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:if test="$subject/locn:address">
-      <section id="addresses">
-        <h2>Addresses</h2>
-        <ul>
-          <xsl:for-each select="$subject/locn:address">
-            <li>
-              <xsl:call-template name="rdf-value">
-                <xsl:with-param name="element" select="." />
-              </xsl:call-template>
-            </li>
-          </xsl:for-each>
-        </ul>
-        <div id="map">
-          <xsl:for-each select="$subject/locn:address">
-            <xsl:variable name="uri" select="string(@rdf:resource)" />
-            <xsl:call-template name="map-address">
-              <xsl:with-param name="address" select="//rdf:Description[@rdf:about=$uri]" />
-            </xsl:call-template>
-          </xsl:for-each>
+    <xsl:choose>
+      <xsl:when test="boolean($subject/locn:address)">
+        <div class="grid">
+          <div class="unit half">
+            <xsl:call-template name="contact" />
+          </div>
+          <div class="unit half">
+            <xsl:call-template name="map" />
+          </div>
         </div>
-      </section>
-    </xsl:if>
-    <xsl:if test="$subject/foaf:phone">
-      <section id="phone">
-        <h2>Phone numbers</h2>
-        <ul>
-          <xsl:for-each select="$subject/foaf:phone">
-            <li>
-              <!-- All phone number are <tel:+...> URIs. -->
-              <xsl:value-of select="substring(string(@rdf:resource), 5)" />
-            </li>
-          </xsl:for-each>
-        </ul>
-      </section>
-    </xsl:if>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="contact" />
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <!-- General information -->
@@ -169,6 +149,49 @@
         </ul>
       </xsl:if>
     </li>
+  </xsl:template>
+
+  <!-- Contact information (address, phone number) -->
+  <xsl:template name="contact">
+    <xsl:if test="boolean($subject/locn:address)">
+      <section id="addresses">
+        <h2>Addresses</h2>
+        <ul>
+          <xsl:for-each select="$subject/locn:address">
+            <li>
+              <xsl:call-template name="rdf-value">
+                <xsl:with-param name="element" select="." />
+              </xsl:call-template>
+            </li>
+          </xsl:for-each>
+        </ul>
+      </section>
+    </xsl:if>
+    <xsl:if test="boolean($subject/foaf:phone)">
+      <section id="phone">
+        <h2>Phone numbers</h2>
+        <ul>
+          <xsl:for-each select="$subject/foaf:phone">
+            <li>
+              <!-- All phone number are <tel:+...> URIs. -->
+              <xsl:value-of select="substring(string(@rdf:resource), 5)" />
+            </li>
+          </xsl:for-each>
+        </ul>
+      </section>
+    </xsl:if>
+  </xsl:template>
+
+  <!-- Map of addresses -->
+  <xsl:template name="map">
+    <div id="map">
+      <xsl:for-each select="$subject/locn:address">
+        <xsl:variable name="uri" select="string(@rdf:resource)" />
+        <xsl:call-template name="map-address">
+          <xsl:with-param name="address" select="//rdf:Description[@rdf:about=$uri]" />
+        </xsl:call-template>
+      </xsl:for-each>
+    </div>
   </xsl:template>
 
 </xsl:stylesheet>
