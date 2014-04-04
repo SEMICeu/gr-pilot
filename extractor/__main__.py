@@ -51,7 +51,7 @@ from .rdf import URIRef, Literal
 
 orgtypes = utils.AutoDict(model.OrganizationType)
 categories = utils.AutoDict(model.OrganizationCategory)
-addresses = utils.AutoDict(model.Address)
+addresses = {}
 organizations = utils.AutoDict(model.Organization)
 
 
@@ -68,7 +68,10 @@ for cid, entries in data.census.by_cid.items():
     org = organizations[cid]
     for e in entries:
         org.name.add(Literal(e.name, lang="el"))
-        addr = addresses[e.address_id]
+        addr_key = (e.street1, e.number1, e.postcode, e.municipality, e.country)
+        if addr_key not in addresses:
+            addresses[addr_key] = model.Address(e.address_id)
+        addr = addresses[addr_key]
         org.address.add(addr)
         full = ""
         if e.street1:
