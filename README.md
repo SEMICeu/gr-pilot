@@ -23,7 +23,7 @@ The following files shall be put in the `data` directory:
 
 File                    | Origin
 ------------------------|------------------------------------------------------
-organikos.csv           | Access database › organikos\_work\_reference
+census.csv              | Access database › organikos\_work\_reference
 hierarchy.csv           | Access database › ierarxia (see note below)
 transparency.csv        | Access database › ΜΗΤΡΩΟ ΦΟΡΕΩΝ ΔΙΑΥΓΕΙΑ
 syzefxis.csv            | Access database › syzefxis\_address
