@@ -79,6 +79,17 @@ Follow these steps to set up the pilot:
    `^/doc/([^/.]*)(?:/([^/.]*))?(?:\.(.*))?$` | `/description.vsp?type=$U1&id=$U2&format=$U3` | Internal
    `^/id/(.*)$`                               | `/doc/$s1`                                    | 303
 
+6. Set up the following namespaces.
+
+   Prefix    | URI
+   ----------|-----------------------
+   `dcterms` | `http://purl.org/dc/terms/`
+   `foaf`    | `http://xmlns.com/foaf/0.1/`
+   `locn`    | `http://www.w3.org/ns/locn#`
+   `org`     | `http://www.w3.org/ns/org#`
+   `rov`     | `http://www.w3.org/ns/regorg#`
+   `skos`    | `http://www.w3.org/2004/02/skos/core#`
+
 *Note:* if you choose another subdirectory or another virtual host, use the
 `configure.sh` script with the appropriate arguments.
 
